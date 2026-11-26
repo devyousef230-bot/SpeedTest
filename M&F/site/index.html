@@ -146,14 +146,17 @@ async function showConfig(script,admin,path,proxy,deployed){
  $('snippet').textContent=JSON.stringify(cfg,null,2);$('snippetWrap').classList.remove('hidden');
  if(deployed){
   try{
-   const [accountDomain,workerDomain]=await Promise.all([
-    request('/accounts/'+enc(accountId)+'/workers/subdomain'),
-    request('/accounts/'+enc(accountId)+'/workers/scripts/'+enc(script)+'/subdomain')
-   ]);
-   if(accountDomain.result&&accountDomain.result.subdomain&&workerDomain.result&&workerDomain.result.enabled){
-    const base='https://'+script+'.'+accountDomain.result.subdomain+'.workers.dev'+(path?'/'+path:'');
-    $('links').innerHTML='<div class="status good">لینک پنل:</div><p dir="ltr"><a style="color:#60a5fa" target="_blank" rel="noopener" href="'+base+'/panel">'+base+'/panel</a></p>';
-   }else{$('links').textContent='Worker Deploy شد؛ اما دامنه workers.dev برای این Worker فعال نیست. دامنهٔ سفارشی متصل‌شده را باز کن و مسیر پنل را به انتهای آن اضافه کن.';}
+   const accountDomain=await request('/accounts/'+enc(accountId)+'/workers/subdomain');
+   if(!accountDomain.result||!accountDomain.result.subdomain)throw new Error('ساب‌دامنه workers.dev برای این حساب فعال نیست؛ ابتدا آن را در Cloudflare فعال کن.');
+   const subdomainPath='/accounts/'+enc(accountId)+'/workers/scripts/'+enc(script)+'/subdomain';
+   let workerDomain=await request(subdomainPath);
+   if(!workerDomain.result||!workerDomain.result.enabled){
+    workerDomain=await request(subdomainPath,'POST',{enabled:true});
+   }
+   if(!workerDomain.result||!workerDomain.result.enabled)throw new Error('فعال‌سازی آدرس workers.dev برای این Worker تأیید نشد.');
+   const base='https://'+script+'.'+accountDomain.result.subdomain+'.workers.dev';
+   $('links').innerHTML='<div class="status good">لینک نهایی Worker:</div><p dir="ltr" style="overflow-wrap:anywhere"><a style="color:#60a5fa" target="_blank" rel="noopener" href="'+base+'">'+base+'</a></p><button type="button" id="copyWorkerLink" class="secondary">کپی لینک Worker</button>';
+   $('copyWorkerLink').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(base);$('copyWorkerLink').textContent='لینک کپی شد';}catch(e){$('copyWorkerLink').textContent='کپی خودکار در دسترس نیست';}});
   }catch(e){$('links').textContent='Worker Deploy شد؛ برای نمایش لینک، دسترسی خواندن Workers subdomain به توکن اضافه کن یا دامنهٔ Worker را از داشبورد Cloudflare بررسی کن.';}
   $('links').classList.remove('hidden');
  }else{$('links').classList.add('hidden');}
