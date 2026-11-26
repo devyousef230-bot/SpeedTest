@@ -114,11 +114,12 @@ $('run').addEventListener('click',async()=>{
   step('source','running','در حال دریافت فایل از پوشه M&F');
   const sourceUrl=new URL('../worker.js',location.href);
   const src=await fetch(sourceUrl.href,{cache:'no-store'});
-  if(!src.ok){step('source','done','فایل هنوز اضافه نشده؛ Deploy به زمان اضافه‌شدن فایل موکول شد.');step('finish','done','KV آماده است؛ Worker هنوز Deploy نشده.');$('result').textContent='آماده‌سازی KV موفق بود. فایل M&F/worker.js هنوز در GitHub Pages موجود نیست؛ بعد از قرار دادن فایل در پوشه M&F دوباره Deploy را بزن.';$('result').className='status good';log('فایل worker.js پیدا نشد؛ عمداً هیچ کد آزمایشی Deploy نشد.');showConfig(script,admin,path,proxy);return;}
+  if(!src.ok){step('source','done','فایل هنوز اضافه نشده؛ Deploy به زمان اضافه‌شدن فایل موکول شد.');step('finish','done','KV آماده است؛ Worker هنوز Deploy نشده.');$('result').textContent='آماده‌سازی KV موفق بود. فایل M&F/worker.js هنوز در GitHub Pages موجود نیست؛ بعد از قرار دادن فایل در پوشه M&F دوباره Deploy را بزن.';$('result').className='status good';log('فایل worker.js پیدا نشد؛ عمداً هیچ کد آزمایشی Deploy نشد.');showConfig(script,admin,path,proxy,false);return;}
   const code=await src.text();if(!code.trim())throw new Error('فایل worker.js خالی است.');
   step('source','done','فایل دریافت شد · '+code.length+' کاراکتر');
-  const settings=await request('/accounts/'+enc(accountId)+'/workers/scripts/'+enc(script)+'/settings').catch(e=>null);
-  if(settings&&!$('overwrite').checked)throw new Error('Worker با این نام از قبل وجود دارد. برای جایگزینی کد آن، تیک تأیید جایگزینی را فعال کن.');
+  const existing=await request('/accounts/'+enc(accountId)+'/workers/scripts?per_page=100');
+  const alreadyThere=(existing.result||[]).some(x=>x.id===script);
+  if(alreadyThere&&!$('overwrite').checked)throw new Error('Worker با این نام از قبل وجود دارد. برای جایگزینی کد آن، تیک تأیید جایگزینی را فعال کن.');
   step('worker','running','در حال آپلود کد اصلی و Bindingها');
   const bindings=[{type:'kv_namespace',name:'DB',namespace_id:namespaceId},{type:'plain_text',name:'ADMIN_USER',text:admin}];
   if(path)bindings.push({type:'plain_text',name:'SECRET_PATH',text:path});
@@ -132,19 +133,19 @@ $('run').addEventListener('click',async()=>{
   step('worker','done','کد اصلی Worker آپلود و Deploy شد.');log('Worker با فایل اصلی worker.js Deploy شد.');
   step('secret','running','در حال ثبت Secret');await request('/accounts/'+enc(accountId)+'/workers/scripts/'+enc(script)+'/secrets','PUT',{name:'ADMIN_PASS',text:pass,type:'secret_text'});
   $('adminpass').value='';step('secret','done','ADMIN_PASS به‌صورت Secret ثبت شد.');log('ADMIN_PASS با نوع secret_text ثبت شد.');
-  step('finish','done','Deploy کامل شد.');$('result').textContent='Deploy با موفقیت انجام شد.';$('result').className='status good';showConfig(script,admin,path,proxy);
+  step('finish','done','Deploy کامل شد.');$('result').textContent='Deploy با موفقیت انجام شد.';$('result').className='status good';showConfig(script,admin,path,proxy,true);
  }catch(e){
   const active=document.querySelector('.step.running');if(active){active.className='step error';active.querySelector('small').textContent='ناموفق';}
   $('result').textContent='عملیات متوقف شد: '+e.message;$('result').className='status bad';log('خطا: '+e.message);
   if(namespaceId)log('KV Namespace آماده است؛ شناسه: '+namespaceId);
  }finally{busy=false;$('run').disabled=!token;}
 });
-function showConfig(script,admin,path,proxy){
+function showConfig(script,admin,path,proxy,deployed){
  const cfg={name:script,main:'./worker.js',compatibility_date:'2026-11-26',kv_namespaces:[{binding:'DB',id:namespaceId}],vars:{ADMIN_USER:admin}};
  if(path)cfg.vars.SECRET_PATH=path;if(proxy)cfg.vars.PROXYIP=proxy;
  $('snippet').textContent=JSON.stringify(cfg,null,2);$('snippetWrap').classList.remove('hidden');
- const host=script+'.workers.dev',base='https://'+host+(path?'/'+path:'');
- $('links').innerHTML='<div class="status good">آدرس پنل پس از فعال بودن دامنه Worker:</div><p dir="ltr"><a style="color:#60a5fa" target="_blank" rel="noopener" href="'+base+'/panel">'+base+'/panel</a></p><div class="hint">اگر دامنه workers.dev برای حساب غیرفعال باشد، دامنهٔ سفارشی Worker خودت را جایگزین کن.</div>';$('links').classList.remove('hidden');
+ if(deployed){const host=script+'.workers.dev',base='https://'+host+(path?'/'+path:'');
+ $('links').innerHTML='<div class="status good">آدرس پنل (در صورت فعال بودن دامنه workers.dev):</div><p dir="ltr"><a style="color:#60a5fa" target="_blank" rel="noopener" href="'+base+'/panel">'+base+'/panel</a></p><div class="hint">اگر دامنه workers.dev برای حساب غیرفعال باشد، دامنهٔ سفارشی Worker خودت را جایگزین کن.</div>';$('links').classList.remove('hidden');}else{$('links').classList.add('hidden');}
 }
 $('copy').addEventListener('click',async()=>{try{await navigator.clipboard.writeText($('snippet').textContent);$('copy').textContent='کپی شد';}catch(e){$('copy').textContent='کپی خودکار در دسترس نیست';}});
 window.addEventListener('pagehide',()=>{token='';accountId='';$('adminpass').value='';});
