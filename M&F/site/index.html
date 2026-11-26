@@ -80,7 +80,7 @@ async function request(path,method='GET',body){
 }
 function enc(v){return encodeURIComponent(v);}
 $('connect').addEventListener('click',async()=>{
- const v=$('token').value.trim();const bridge=$('proxyurl').value.trim().replace(/\\/+$/,'');if(!v){$('connection').textContent='توکن را وارد کن.';return;}if(!/^https:\\/\\/[^\\s]+$/i.test(bridge)){ $('connection').textContent='ابتدا آدرس HTTPS واسط امن را وارد کن.';$('connection').className='status bad';return;}
+ const v=$('token').value.trim();const bridge=$('proxyurl').value.trim().replace(/\/+$/,'');if(!v){$('connection').textContent='توکن را وارد کن.';return;}if(!/^https:\/\/[^\s]+$/i.test(bridge)){ $('connection').textContent='ابتدا آدرس HTTPS واسط امن را وارد کن.';$('connection').className='status bad';return;}
  API=bridge+'/api/client/v4';token=v;$('token').value='';$('connect').disabled=true;
  try{
   await request('/user/tokens/verify');
