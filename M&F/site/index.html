@@ -66,7 +66,8 @@ h1{font-size:clamp(25px,4vw,36px);margin:0 0 8px}p{color:var(--muted);margin:0 0
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const INSTALLER_URL='https://mf-installer.REPLACE_WITH_YOUR_ACCOUNT_SUBDOMAIN.workers.dev';\nconst API=INSTALLER_URL+'/api/client/v4';
+const INSTALLER_URL='https://mf-installer.REPLACE_WITH_YOUR_ACCOUNT_SUBDOMAIN.workers.dev';
+const API=INSTALLER_URL+'/api/client/v4';
 const KV_TITLE='MF_PANEL_DB';
 let token='',accountId='',namespaceId='',busy=false;
 function log(m){const d=document.createElement('div');d.textContent=new Date().toLocaleTimeString('fa-IR')+'  '+m;$('log').prepend(d);}
@@ -80,8 +81,7 @@ async function request(path,method='GET',body){
 }
 function enc(v){return encodeURIComponent(v);}
 $('connect').addEventListener('click',async()=>{
- const v=$('token').value.trim();const bridge=$('proxyurl').value.trim().replace(/\/+$/,'');if(!v){$('connection').textContent='توکن را وارد کن.';return;}if(!/^https:\/\/[^\s]+$/i.test(bridge)){ $('connection').textContent='ابتدا آدرس HTTPS واسط امن را وارد کن.';$('connection').className='status bad';return;}
- API=bridge+'/api/client/v4';token=v;$('token').value='';$('connect').disabled=true;
+ const v=$('token').value.trim();if(!v){$('connection').textContent='توکن را وارد کن.';return;}if(INSTALLER_URL.includes('REPLACE_WITH_YOUR_ACCOUNT_SUBDOMAIN')){$('connection').textContent='نصب‌کننده هنوز توسط صاحب پروژه پیکربندی نشده است.';$('connection').className='status bad';return;}token=v;$('token').value='';$('connect').disabled=true;
  try{
   await request('/user/tokens/verify');
   const a=await request('/accounts?per_page=50'),list=a.result||[];
@@ -127,7 +127,7 @@ $('run').addEventListener('click',async()=>{
   const form=new FormData();
   form.append('metadata',new Blob([JSON.stringify({main_module:'worker.js',compatibility_date:'2026-11-26',bindings})],{type:'application/json'}),'metadata.json');
   form.append('worker.js',new Blob([code],{type:'application/javascript+module'}),'worker.js');
-  const upload=await fetch(API+'/accounts/'+enc(accountId)+'/workers/scripts/'+enc(script),{method:'PUT',headers:{Authorization:'Bearer '+token,'X-MF-Bridge-Key':$('bridgekey').value},body:form,cache:'no-store'});
+  const upload=await fetch(API+'/accounts/'+enc(accountId)+'/workers/scripts/'+enc(script),{method:'PUT',headers:{Authorization:'Bearer '+token,},body:form,cache:'no-store'});
   let result={};try{result=await upload.json()}catch(e){}
   if(!upload.ok||result.success===false)throw new Error('آپلود Worker ناموفق بود: '+((result.errors||[]).map(x=>x.message).join('؛ ')||('HTTP '+upload.status)));
   step('worker','done','کد اصلی Worker آپلود و Deploy شد.');log('Worker با فایل اصلی worker.js Deploy شد.');
