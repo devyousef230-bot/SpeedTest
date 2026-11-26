@@ -1,33 +1,39 @@
-# M&F — Cloudflare Worker setup
+# M&F — Cloudflare Deployer
 
-This folder contains the Cloudflare Wrangler configuration scaffold. The Worker source is intentionally not included; add your own `worker.js` here when ready.
+این پوشه شامل داشبورد راه‌اندازی و تنظیمات Wrangler برای پنل M&F است. فایل اصلی Worker عمداً در مخزن قرار داده نشده است؛ فایل نهایی را خودت با نام `worker.js` در همین پوشه قرار بده.
 
-## KV binding
+## تنظیمات مورد انتظار پنل
 
-- Binding name: `MF_KV`
-- Namespace ID: replace `REPLACE_WITH_KV_NAMESPACE_ID` in `wrangler.jsonc` with the ID of the KV namespace created in your Cloudflare account.
+| مورد | مقدار |
+|---|---|
+| KV Namespace | `MF_PANEL_DB` |
+| Worker Binding | `DB` |
+| دسترسی در کد | `env.DB` |
+| رمز مدیر | `ADMIN_PASS` به‌صورت Secret |
+| نام مدیر | `ADMIN_USER`، پیش‌فرض `admin` |
+| مسیر خصوصی | `SECRET_PATH`، اختیاری |
+| پراکسی سراسری | `PROXYIP`، اختیاری |
 
-The binding name is what the Worker accesses at runtime (for example, `env.MF_KV`).
+## استفاده از داشبورد
 
-## Variables
+1. صفحه GitHub Pages پروژه را باز کن.
+2. یک Cloudflare API Token با دسترسی‌های لازم برای بررسی حساب، ساخت/خواندن KV و نوشتن Worker و Secretها وارد کن.
+3. حساب Cloudflare را انتخاب کن.
+4. رمز مدیر را در `ADMIN_PASS` وارد کن. این مقدار از API نوع Secret ثبت می‌شود و در vars قرار نمی‌گیرد.
+5. دکمه آماده‌سازی را بزن.
 
-The starter non-secret variables are:
+داشبورد Namespace با نام ثابت `MF_PANEL_DB` را پیدا می‌کند؛ اگر وجود داشته باشد همان را استفاده می‌کند و اگر نباشد آن را می‌سازد. سپس فایل `M&F/worker.js` را از همان سایت می‌خواند و با Binding به نام `DB` Deploy می‌کند. اگر فایل هنوز وجود نداشته باشد، فقط KV آماده می‌شود و هیچ کد آزمایشی روی Worker Deploy نمی‌شود. بعد از افزودن فایل، دوباره عملیات Deploy را اجرا کن.
 
-- `APP_ENV`: deployment environment (currently `production`)
-- `CACHE_TTL_SECONDS`: example cache duration in seconds (currently `60`)
+**هشدار:** اگر Worker با نام انتخاب‌شده از قبل وجود داشته باشد، داشبورد بدون تأیید صریح جایگزینش نمی‌کند. فعال‌کردن گزینه جایگزینی، کد Worker قبلی را با فایل جدید عوض می‌کند.
 
-Change these values/names to match the Worker code. Do not put API keys, passwords, or other secrets in `vars`; add those separately as Worker secrets in Cloudflare.
+## متغیرها و امنیت
 
-## Worker entry point
+- `ADMIN_PASS` ضروری است و با endpoint مربوط به Worker Secrets ثبت می‌شود.
+- `ADMIN_USER` اختیاری است و پیش‌فرض آن `admin` است.
+- `SECRET_PATH` و `PROXYIP` فقط در صورت واردکردن، به‌عنوان plain-text bindings ثبت می‌شوند.
+- توکن API و رمز مدیر در مرورگر ذخیره دائمی نمی‌شوند؛ با قطع اتصال یا بستن صفحه از حافظه صفحه پاک می‌شوند.
+- `SECRET_PATH` فقط مسیر را کمتر قابل حدس می‌کند و جایگزین احراز هویت نیست.
 
-The config expects the Worker source at `M&F/worker.js`. Add that file manually before deploying.
+## Wrangler
 
-## Deploy
-
-From this folder, after replacing the KV namespace ID and adding `worker.js`, use Wrangler to deploy:
-
-```bash
-npx wrangler deploy
-```
-
-This scaffold does not create the KV namespace in your Cloudflare account and does not deploy the Worker.
+پس از ایجاد KV، شناسه واقعی Namespace را جایگزین مقدار نمونه در `wrangler.jsonc` کن. مقدار `ADMIN_PASS` را هرگز داخل فایل Wrangler یا `vars` قرار نده؛ آن را با Secret مدیریت کن.
