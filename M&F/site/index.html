@@ -18,7 +18,7 @@ h1{font-size:clamp(25px,4vw,36px);margin:0 0 8px}p{color:var(--muted);margin:0 0
 <div class="layout">
 <section class="panel">
 <h2>۱. اتصال حساب Cloudflare</h2>
-<div class="field"><label for="proxyurl">آدرس واسط امن Cloudflare (یک‌بار Deploy می‌شود)</label><input id="proxyurl" type="url" autocomplete="url" spellcheck="false" placeholder="https://mf-cf-api-bridge.YOUR-SUBDOMAIN.workers.dev"></div><div class="hint">ابتدا فایل واسط داخل پوشه M&F/cors-proxy را طبق راهنمای آن Deploy کن؛ سپس آدرس و کلید مشترک آن را اینجا وارد کن.</div><div class="field"><label for="bridgekey">کلید محرمانهٔ واسط (BRIDGE_KEY)</label><input id="bridgekey" type="password" autocomplete="off" placeholder="همان Secret تنظیم‌شده روی Proxy Worker"></div><div class="field"><label for="token">Cloudflare API Token</label><input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="توکن را وارد کن"></div>
+<div class="hint">فقط توکن Cloudflare خودت را وارد کن؛ اتصال واسط توسط صاحب پروژه از قبل تنظیم شده است.</div><div class="field"><label for="token">Cloudflare API Token</label><input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="توکن را وارد کن"></div>
 <div class="actions"><button id="connect">اتصال و دریافت حساب‌ها</button><button id="disconnect" class="secondary" disabled>قطع اتصال</button></div>
 <div class="field"><label for="account">حساب Cloudflare</label><select id="account" disabled><option value="">ابتدا متصل شو</option></select></div>
 <div id="connection" class="status">هنوز متصل نشده‌ای.</div>
@@ -60,20 +60,20 @@ h1{font-size:clamp(25px,4vw,36px);margin:0 0 8px}p{color:var(--muted);margin:0 0
 </section>
 <section class="panel wide"><h2>گزارش فعالیت</h2><div id="log" class="log"><div>آماده‌به‌کار — هنوز درخواستی ارسال نشده است.</div></div></section>
 </div>
-<div class="footer">توکن و رمز مدیر فقط در حافظهٔ همین صفحه نگهداری می‌شوند و در localStorage یا sessionStorage ذخیره نمی‌شوند. درخواست‌ها از واسط اختصاصی با CORS محدود عبور می‌کنند؛ توکن فقط در حافظهٔ صفحه است. پس از تست، دسترسی‌های غیرضروری توکن را حذف کن.</div>
+<div class="footer">توکن و رمز مدیر فقط در حافظهٔ همین صفحه نگهداری می‌شوند و در localStorage یا sessionStorage ذخیره نمی‌شوند. درخواست‌ها از Installer اختصاصی عبور می‌کنند؛ توکن فقط در حافظهٔ صفحه است. پس از تست، دسترسی‌های غیرضروری توکن را حذف کن.</div>
 </main>
 <script>
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-let API='';
+const INSTALLER_URL='https://mf-installer.REPLACE_WITH_YOUR_ACCOUNT_SUBDOMAIN.workers.dev';\nconst API=INSTALLER_URL+'/api/client/v4';
 const KV_TITLE='MF_PANEL_DB';
 let token='',accountId='',namespaceId='',busy=false;
 function log(m){const d=document.createElement('div');d.textContent=new Date().toLocaleTimeString('fa-IR')+'  '+m;$('log').prepend(d);}
 function step(n,s,m){const e=document.querySelector('[data-step="'+n+'"]');e.className='step '+s;e.querySelector('small').textContent=m;}
 function reset(){['auth','kv','source','worker','secret','finish'].forEach(n=>step(n,'','در انتظار'));$('result').textContent='';$('links').classList.add('hidden');$('snippetWrap').classList.add('hidden');}
 async function request(path,method='GET',body){
- const r=await fetch(API+path,{method,headers:{Authorization:'Bearer '+token,'Content-Type':'application/json','X-MF-Bridge-Key':$('bridgekey').value},body:body===undefined?undefined:JSON.stringify(body),cache:'no-store'});
+ const r=await fetch(API+path,{method,headers:{Authorization:'Bearer '+token,'Content-Type':'application/json',},body:body===undefined?undefined:JSON.stringify(body),cache:'no-store'});
  let j={};try{j=await r.json()}catch(e){}
  if(!r.ok||j.success===false)throw new Error((j.errors||[]).map(x=>x.message).join('؛ ')||('HTTP '+r.status));
  return j;
@@ -159,6 +159,6 @@ async function showConfig(script,admin,path,proxy,deployed){
  }else{$('links').classList.add('hidden');}
 }
 $('copy').addEventListener('click',async()=>{try{await navigator.clipboard.writeText($('snippet').textContent);$('copy').textContent='کپی شد';}catch(e){$('copy').textContent='کپی خودکار در دسترس نیست';}});
-window.addEventListener('pagehide',()=>{token='';accountId='';$('adminpass').value='';$('bridgekey').value='';});
+window.addEventListener('pagehide',()=>{token='';accountId='';$('adminpass').value='';});
 })();
 </script></body></html>
