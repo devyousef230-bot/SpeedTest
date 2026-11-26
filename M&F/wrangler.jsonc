@@ -1,16 +1,15 @@
 {
   "$schema": "../node_modules/wrangler/config-schema.json",
-  "name": "speedtest-mf",
+  "name": "mf-panel",
   "main": "./worker.js",
   "compatibility_date": "2026-11-26",
   "kv_namespaces": [
     {
-      "binding": "MF_KV",
+      "binding": "DB",
       "id": "REPLACE_WITH_KV_NAMESPACE_ID"
     }
   ],
   "vars": {
-    "APP_ENV": "production",
-    "CACHE_TTL_SECONDS": "60"
+    "ADMIN_USER": "admin"
   }
 }
