@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101827"><title>M&F · Cloudflare Setup</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1220;--panel:#121d30;--line:#26364e;--muted:#9aabc2;--text:#edf4ff;--blue:#60a5fa;--green:#34d399;--red:#fb7185;--amber:#fbbf24}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#172944 0,var(--bg) 55%);color:var(--text);font:15px/1.8 system-ui,-apple-system,Segoe UI,sans-serif}
+main{width:min(980px,94%);margin:42px auto}.top{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:24px}.brand{font-size:24px;font-weight:850;letter-spacing:.4px}.brand span{color:var(--blue)}.pill{border:1px solid var(--line);border-radius:99px;padding:4px 12px;color:var(--muted);font-size:12px}
+h1{font-size:clamp(25px,4vw,36px);margin:0 0 8px}p{color:var(--muted);margin:0 0 20px}.layout{display:grid;grid-template-columns:1fr 1fr;gap:16px}.panel{background:linear-gradient(145deg,#152238,#101a2b);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 16px 40px #0002}.wide{grid-column:1/-1}h2{font-size:17px;margin:0 0 14px}.field{display:grid;gap:6px;margin:12px 0}label{font-size:13px;color:#c7d5e8}input,select{width:100%;background:#0b1423;border:1px solid #31435e;border-radius:10px;padding:12px;color:var(--text);font:inherit;outline:none}input:focus,select:focus{border-color:var(--blue)}button{border:0;border-radius:11px;padding:11px 16px;background:var(--blue);color:#071426;font-weight:800;font:inherit;cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}.secondary{background:#263851;color:var(--text)}.danger{background:#512b3b;color:#ffdce3}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.hint{font-size:12px;color:var(--muted)}.steps{display:grid;gap:10px}.step{display:flex;align-items:center;gap:12px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:#0c1625}.dot{width:10px;height:10px;border-radius:50%;background:#53657d;flex:none}.step.running .dot{background:var(--amber);box-shadow:0 0 0 5px #fbbf241c}.step.done .dot{background:var(--green)}.step.error .dot{background:var(--red)}.step small{display:block;color:var(--muted)}.log{max-height:220px;overflow:auto;display:grid;gap:8px;font:12px/1.7 ui-monospace,monospace;color:#b9c9df}.log div{border-bottom:1px solid #24334a;padding-bottom:6px}.status{color:var(--muted);font-size:13px}.status.good{color:var(--green)}.status.bad{color:var(--red)}.hidden{display:none}.copy{color:var(--blue);cursor:pointer;text-decoration:underline}.footer{margin:18px 2px;color:var(--muted);font-size:12px}
+@media(max-width:720px){.layout{grid-template-columns:1fr}.wide{grid-column:auto}.top{align-items:flex-start;flex-direction:column}main{margin:24px auto}}
+</style>
+</head>
+<body><main>
+<div class="top"><div class="brand">M<span>&</span>F <span style="color:#edf4ff">/ Cloudflare Setup</span></div><div class="pill">SESSION ONLY · NO TOKEN STORAGE</div></div>
+<h1>راه‌اندازی منابع Cloudflare</h1>
+<p>اتصال حساب، ساخت KV، افزودن Binding و تنظیم متغیرها؛ هر مرحله با وضعیت زنده نمایش داده می‌شود.</p>
+<div class="layout">
+<section class="panel">
+<h2>۱. اتصال حساب</h2>
+<div class="field"><label for="token">Cloudflare API Token</label><input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="توکن را وارد کن"></div>
+<div class="actions"><button id="connect">اتصال و دریافت حساب‌ها</button><button id="disconnect" class="secondary" disabled>قطع اتصال</button></div>
+<div class="field"><label for="account">حساب Cloudflare</label><select id="account" disabled><option value="">ابتدا متصل شو</option></select></div>
+<div id="connection" class="status">هنوز متصل نشده‌ای.</div>
+</section>
+<section class="panel">
+<h2>۲. تنظیمات پروژه</h2>
+<div class="field"><label for="script">نام Worker</label><input id="script" value="speedtest-mf"></div>
+<div class="field"><label for="namespace">نام KV Namespace</label><input id="namespace" value="speedtest-mf"></div>
+<div class="field"><label for="binding">نام Binding</label><input id="binding" value="MF_KV"></div>
+<div class="field"><label for="appenv">APP_ENV</label><input id="appenv" value="production"></div>
+<div class="field"><label for="ttl">CACHE_TTL_SECONDS</label><input id="ttl" value="60"></div>
+<div class="actions"><button id="run" disabled>شروع ساخت و اتصال</button></div>
+<div class="hint">برای افزودن Binding، Worker با همین نام باید از قبل در حساب وجود داشته باشد.</div>
+</section>
+<section class="panel wide">
+<h2>۳. وضعیت زنده عملیات</h2>
+<div class="steps" id="steps">
+<div class="step" data-step="auth"><i class="dot"></i><div>بررسی دسترسی API<small>در انتظار</small></div></div>
+<div class="step" data-step="kv"><i class="dot"></i><div>ایجاد KV Namespace<small>در انتظار</small></div></div>
+<div class="step" data-step="binding"><i class="dot"></i><div>افزودن KV Binding به Worker<small>در انتظار</small></div></div>
+<div class="step" data-step="vars"><i class="dot"></i><div>تنظیم متغیرهای محیطی<small>در انتظار</small></div></div>
+<div class="step" data-step="finish"><i class="dot"></i><div>پایان عملیات<small>در انتظار</small></div></div>
+</div>
+<div id="result" class="status" style="margin-top:14px"></div>
+<div id="snippetWrap" class="hidden" style="margin-top:14px"><label>شناسه KV و قطعه تنظیمات Wrangler</label><pre id="snippet" style="white-space:pre-wrap;overflow-wrap:anywhere;background:#091321;border:1px solid var(--line);padding:12px;border-radius:10px;color:#b9d9ff"></pre><span class="copy" id="copy">کپی تنظیمات</span></div>
+</section>
+<section class="panel wide">
+<h2>گزارش فعالیت</h2><div id="log" class="log"><div>آماده‌به‌کار — هنوز درخواستی ارسال نشده است.</div></div>
+</section>
+</div>
+<div class="footer">توکن فقط در حافظه همین صفحه استفاده می‌شود؛ در localStorage، sessionStorage یا دیتابیس ذخیره نمی‌شود. با قطع اتصال یا بستن صفحه پاک می‌شود. درخواست‌ها مستقیماً به API کلودفلر ارسال می‌شوند.</div>
+</main>
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+let token='';
+let accountId='';
+let namespaceId='';
+let busy=false;
+const api='https://api.cloudflare.com/client/v4';
+function log(message){const row=document.createElement('div');row.textContent=new Date().toLocaleTimeString('fa-IR')+'  '+message;$('log').prepend(row);}
+function step(name,state,message){const el=document.querySelector('[data-step="'+name+'"]');el.className='step '+state;el.querySelector('small').textContent=message;}
+function resetSteps(){['auth','kv','binding','vars','finish'].forEach(n=>step(n,'','در انتظار'));$('result').textContent='';$('snippetWrap').classList.add('hidden');}
+async function request(path,method='GET',body){
+ const res=await fetch(api+path,{method,headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined,cache:'no-store'});
+ let data={};try{data=await res.json()}catch(e){}
+ if(!res.ok||data.success===false){const msg=(data.errors||[]).map(x=>x.message).join('؛ ')||('HTTP '+res.status);throw new Error(msg);}
+ return data;
+}
+$('connect').addEventListener('click',async()=>{
+ const entered=$('token').value.trim();if(!entered){$('connection').textContent='توکن را وارد کن.';return;}
+ token=entered;$('token').value='';$('connect').disabled=true;
+ try{
+  const verify=await request('/user/tokens/verify');
+  if(!verify.success)throw new Error('توکن معتبر نیست.');
+  const accounts=await request('/accounts?per_page=50');
+  const list=accounts.result||[];
+  if(!list.length)throw new Error('برای این توکن حسابی پیدا نشد.');
+  $('account').innerHTML='';
+  list.forEach(a=>{const o=document.createElement('option');o.value=a.id;o.textContent=a.name+' · '+a.id;$('account').appendChild(o)});
+  accountId=$('account').value;
+  $('account').disabled=false;$('run').disabled=false;$('disconnect').disabled=false;
+  $('connection').textContent='اتصال موفق — '+list.length+' حساب در دسترس است.';$('connection').className='status good';
+  log('توکن تأیید شد و حساب‌ها دریافت شدند.');
+ }catch(e){token='';$('connection').textContent='خطا: '+e.message;$('connection').className='status bad';log('خطای اتصال: '+e.message);}
+ finally{$('connect').disabled=false;}
+});
+$('account').addEventListener('change',()=>{accountId=$('account').value});
+$('disconnect').addEventListener('click',()=>{token='';accountId='';namespaceId='';$('account').innerHTML='<option value="">ابتدا متصل شو</option>';$('account').disabled=true;$('run').disabled=true;$('disconnect').disabled=true;$('connection').textContent='اتصال قطع شد.';$('connection').className='status';resetSteps();log('توکن از حافظه صفحه پاک شد.');});
+$('run').addEventListener('click',async()=>{
+ if(busy||!token||!accountId)return;
+ const script=$('script').value.trim(),title=$('namespace').value.trim(),binding=$('binding').value.trim(),appenv=$('appenv').value,ttl=$('ttl').value.trim();
+ if(!script||!title||!/^[A-Za-z_][A-Za-z0-9_]*$/.test(binding)){alert('نام Worker و KV را وارد کن و نام Binding باید شناسه معتبر جاوااسکریپت باشد.');return;}
+ busy=true;$('run').disabled=true;resetSteps();
+ try{
+  step('auth','running','در حال بررسی دسترسی');log('بررسی دسترسی حساب Cloudflare…');
+  await request('/accounts/'+encodeURIComponent(accountId));
+  step('auth','done','دسترسی حساب تأیید شد');log('دسترسی حساب تأیید شد.');
+  step('kv','running','در حال ایجاد Namespace');log('در حال ایجاد KV Namespace با نام '+title+' …');
+  const created=await request('/accounts/'+encodeURIComponent(accountId)+'/storage/kv/namespaces','POST',{title});
+  namespaceId=created.result.id;
+  step('kv','done','ساخته شد · '+namespaceId);log('KV Namespace ساخته شد: '+namespaceId);
+  step('binding','running','در حال خواندن تنظیمات Worker');log('در حال بررسی Worker '+script+' …');
+  const settings=await request('/accounts/'+encodeURIComponent(accountId)+'/workers/scripts/'+encodeURIComponent(script)+'/settings');
+  const bindings=Array.isArray(settings.result&&settings.result.bindings)?settings.result.bindings:[];
+  const next=bindings.filter(b=>b.name!==binding&&b.name!=='APP_ENV'&&b.name!=='CACHE_TTL_SECONDS');
+  next.push({type:'kv_namespace',name:binding,namespace_id:namespaceId});
+  step('binding','running','در حال ثبت Binding');log('در حال افزودن KV Binding به تنظیمات Worker…');
+  next.push({type:'plain_text',name:'APP_ENV',text:appenv});
+  next.push({type:'plain_text',name:'CACHE_TTL_SECONDS',text:ttl});
+  const updated=await request('/accounts/'+encodeURIComponent(accountId)+'/workers/scripts/'+encodeURIComponent(script)+'/settings','PATCH',{bindings:next});
+  step('binding','done','Binding ثبت شد');step('vars','done','APP_ENV و CACHE_TTL_SECONDS ثبت شدند');
+  log('Binding و متغیرها با موفقیت ثبت شدند.');
+  step('finish','done','عملیات با موفقیت تمام شد');
+  $('result').textContent='تمام شد. KV ساخته شد و Binding و متغیرها به تنظیمات Worker اضافه شدند.';$('result').className='status good';
+  const conf={kv_namespaces:[{binding:binding,id:namespaceId}],vars:{APP_ENV:appenv,CACHE_TTL_SECONDS:ttl}};
+  $('snippet').textContent=JSON.stringify(conf,null,2);$('snippetWrap').classList.remove('hidden');
+ }catch(e){
+  const active=document.querySelector('.step.running');
+  if(active){active.className='step error';active.querySelector('small').textContent='ناموفق';}
+  $('result').textContent='عملیات متوقف شد: '+e.message;$('result').className='status bad';log('خطا: '+e.message);
+  if(namespaceId)log('KV ساخته شده و شناسه آن '+namespaceId+' است؛ مراحل بعدی کامل نشدند.');
+ }finally{busy=false;$('run').disabled=!token;}
+});
+$('copy').addEventListener('click',async()=>{try{await navigator.clipboard.writeText($('snippet').textContent);$('copy').textContent='کپی شد';}catch(e){$('copy').textContent='کپی خودکار در دسترس نیست';}});
+window.addEventListener('pagehide',()=>{token='';accountId='';});
+})();
+</script></body></html>
