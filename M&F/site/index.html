@@ -18,7 +18,7 @@ h1{font-size:clamp(25px,4vw,36px);margin:0 0 8px}p{color:var(--muted);margin:0 0
 <div class="layout">
 <section class="panel">
 <h2>۱. اتصال حساب Cloudflare</h2>
-<div class="field"><label for="token">Cloudflare API Token</label><input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="توکن را وارد کن"></div>
+<div class="field"><label for="proxyurl">آدرس واسط امن Cloudflare (یک‌بار Deploy می‌شود)</label><input id="proxyurl" type="url" autocomplete="url" spellcheck="false" placeholder="https://mf-cf-api-bridge.YOUR-SUBDOMAIN.workers.dev"></div><div class="hint">ابتدا فایل واسط داخل پوشه M&F/cors-proxy را طبق راهنمای آن Deploy کن؛ سپس آدرس workers.dev آن را اینجا وارد کن.</div><div class="field"><label for="token">Cloudflare API Token</label><input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="توکن را وارد کن"></div>
 <div class="actions"><button id="connect">اتصال و دریافت حساب‌ها</button><button id="disconnect" class="secondary" disabled>قطع اتصال</button></div>
 <div class="field"><label for="account">حساب Cloudflare</label><select id="account" disabled><option value="">ابتدا متصل شو</option></select></div>
 <div id="connection" class="status">هنوز متصل نشده‌ای.</div>
@@ -60,13 +60,13 @@ h1{font-size:clamp(25px,4vw,36px);margin:0 0 8px}p{color:var(--muted);margin:0 0
 </section>
 <section class="panel wide"><h2>گزارش فعالیت</h2><div id="log" class="log"><div>آماده‌به‌کار — هنوز درخواستی ارسال نشده است.</div></div></section>
 </div>
-<div class="footer">توکن و رمز مدیر فقط در حافظهٔ همین صفحه نگهداری می‌شوند و در localStorage یا sessionStorage ذخیره نمی‌شوند. ارتباط مستقیم با API رسمی Cloudflare برقرار می‌شود. پس از تست، دسترسی‌های غیرضروری توکن را حذف کن.</div>
+<div class="footer">توکن و رمز مدیر فقط در حافظهٔ همین صفحه نگهداری می‌شوند و در localStorage یا sessionStorage ذخیره نمی‌شوند. درخواست‌ها از واسط اختصاصی با CORS محدود عبور می‌کنند؛ توکن فقط در حافظهٔ صفحه است. پس از تست، دسترسی‌های غیرضروری توکن را حذف کن.</div>
 </main>
 <script>
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-const API='https://api.cloudflare.com/client/v4';
+let API='';
 const KV_TITLE='MF_PANEL_DB';
 let token='',accountId='',namespaceId='',busy=false;
 function log(m){const d=document.createElement('div');d.textContent=new Date().toLocaleTimeString('fa-IR')+'  '+m;$('log').prepend(d);}
@@ -80,8 +80,8 @@ async function request(path,method='GET',body){
 }
 function enc(v){return encodeURIComponent(v);}
 $('connect').addEventListener('click',async()=>{
- const v=$('token').value.trim();if(!v){$('connection').textContent='توکن را وارد کن.';return;}
- token=v;$('token').value='';$('connect').disabled=true;
+ const v=$('token').value.trim();const bridge=$('proxyurl').value.trim().replace(/\\/+$/,'');if(!v){$('connection').textContent='توکن را وارد کن.';return;}if(!/^https:\\/\\/[^\\s]+$/i.test(bridge)){ $('connection').textContent='ابتدا آدرس HTTPS واسط امن را وارد کن.';$('connection').className='status bad';return;}
+ API=bridge+'/api/client/v4';token=v;$('token').value='';$('connect').disabled=true;
  try{
   await request('/user/tokens/verify');
   const a=await request('/accounts?per_page=50'),list=a.result||[];
