@@ -1,0 +1,25 @@
+# M&F Cloudflare API Bridge
+
+این Worker یک واسط محدود برای رفع CORS داشبورد GitHub Pages است.
+
+## Deploy یک‌باره
+
+1. Cloudflare Dashboard را باز کن و وارد **Workers & Pages** شو.
+2. یک Worker جدید با نام `mf-cf-api-bridge` بساز.
+3. محتوای فایل `worker.js` همین پوشه را در ادیتور Worker قرار بده و Deploy کن.
+4. آدرس HTTPS آن، معمولاً `https://mf-cf-api-bridge.<subdomain>.workers.dev`، را کپی کن.
+5. در داشبورد M&F در کادر «آدرس واسط امن Cloudflare» وارد کن و سپس API Token را وارد کن.
+
+یا با Wrangler از همین پوشه:
+```bash
+npx wrangler deploy
+```
+
+## امنیت و محدودیت
+
+- فقط Origin دقیق `https://devyousef230-bot.github.io` مجاز است.
+- فقط مسیرهای موردنیاز داشبورد و متدهای GET/POST/PUT عبور داده می‌شوند.
+- هدر Authorization فقط برای درخواست به API رسمی Cloudflare فوروارد می‌شود و در کد لاگ نمی‌شود.
+- این واسط توکن را ذخیره نمی‌کند.
+- URL واسط را عمومی فرض کن؛ محدودیت Origin به‌تنهایی احراز هویت نیست. امنیت اصلی همچنان بر عهده API Token و دسترسی‌های محدود آن است.
+- هیچ تغییری در `M&F/worker.js` اصلی پنل ایجاد نمی‌شود.
