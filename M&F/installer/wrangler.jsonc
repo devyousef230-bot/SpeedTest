@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/wrangler",
-  "name": "mf-installer",
+  "name": "speedtest",
   "main": "worker.js",
   "compatibility_date": "2026-11-26"
 }
