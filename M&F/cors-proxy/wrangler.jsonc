@@ -1,0 +1,6 @@
+{
+  "$schema": "https://json.schemastore.org/wrangler",
+  "name": "mf-cf-api-bridge",
+  "main": "worker.js",
+  "compatibility_date": "2026-11-26"
+}
