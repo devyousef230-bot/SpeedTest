@@ -6,7 +6,7 @@ function corsHeaders(origin) {
   return {
     "Access-Control-Allow-Origin": origin,
     "Access-Control-Allow-Methods": "GET, POST, PUT, OPTIONS",
-    "Access-Control-Allow-Headers": "Authorization, Content-Type",
+    "Access-Control-Allow-Headers": "Authorization, Content-Type, X-MF-Bridge-Key",
     "Access-Control-Max-Age": "86400",
     "Vary": "Origin"
   };
@@ -18,7 +18,7 @@ function allowedPath(path) {
 }
 
 export default {
-  async fetch(request) {
+  async fetch(request, env) {
     const origin = request.headers.get("Origin") || "";
     if (origin !== DASHBOARD_ORIGIN) {
       return new Response("Forbidden origin", { status: 403 });
@@ -32,7 +32,7 @@ export default {
       return new Response("Method not allowed", { status: 405, headers: cors });
     }
 
-    const incoming = new URL(request.url);
+    const bridgeKey = request.headers.get("X-MF-Bridge-Key") || "";\n    if (!env.BRIDGE_KEY || bridgeKey !== env.BRIDGE_KEY) {\n      return new Response("Unauthorized bridge key", { status: 401, headers: cors });\n    }\n\n    const incoming = new URL(request.url);
     if (!incoming.pathname.startsWith(API_PREFIX)) {
       return new Response("Not found", { status: 404, headers: cors });
     }
