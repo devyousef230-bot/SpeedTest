@@ -32,7 +32,12 @@ export default {
       return new Response("Method not allowed", { status: 405, headers: cors });
     }
 
-    const bridgeKey = request.headers.get("X-MF-Bridge-Key") || "";\n    if (!env.BRIDGE_KEY || bridgeKey !== env.BRIDGE_KEY) {\n      return new Response("Unauthorized bridge key", { status: 401, headers: cors });\n    }\n\n    const incoming = new URL(request.url);
+    const bridgeKey = request.headers.get("X-MF-Bridge-Key") || "";
+    if (!env.BRIDGE_KEY || bridgeKey !== env.BRIDGE_KEY) {
+      return new Response("Unauthorized bridge key", { status: 401, headers: cors });
+    }
+
+    const incoming = new URL(request.url);
     if (!incoming.pathname.startsWith(API_PREFIX)) {
       return new Response("Not found", { status: 404, headers: cors });
     }
