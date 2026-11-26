@@ -2,139 +2,151 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#101827"><title>M&F · Cloudflare Setup</title>
+<meta name="theme-color" content="#101827"><title>M&F · Cloudflare Deployer</title>
 <style>
 :root{color-scheme:dark;--bg:#0b1220;--panel:#121d30;--line:#26364e;--muted:#9aabc2;--text:#edf4ff;--blue:#60a5fa;--green:#34d399;--red:#fb7185;--amber:#fbbf24}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#172944 0,var(--bg) 55%);color:var(--text);font:15px/1.8 system-ui,-apple-system,Segoe UI,sans-serif}
-main{width:min(980px,94%);margin:42px auto}.top{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:24px}.brand{font-size:24px;font-weight:850;letter-spacing:.4px}.brand span{color:var(--blue)}.pill{border:1px solid var(--line);border-radius:99px;padding:4px 12px;color:var(--muted);font-size:12px}
-h1{font-size:clamp(25px,4vw,36px);margin:0 0 8px}p{color:var(--muted);margin:0 0 20px}.layout{display:grid;grid-template-columns:1fr 1fr;gap:16px}.panel{background:linear-gradient(145deg,#152238,#101a2b);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 16px 40px #0002}.wide{grid-column:1/-1}h2{font-size:17px;margin:0 0 14px}.field{display:grid;gap:6px;margin:12px 0}label{font-size:13px;color:#c7d5e8}input,select{width:100%;background:#0b1423;border:1px solid #31435e;border-radius:10px;padding:12px;color:var(--text);font:inherit;outline:none}input:focus,select:focus{border-color:var(--blue)}button{border:0;border-radius:11px;padding:11px 16px;background:var(--blue);color:#071426;font-weight:800;font:inherit;cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}.secondary{background:#263851;color:var(--text)}.danger{background:#512b3b;color:#ffdce3}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.hint{font-size:12px;color:var(--muted)}.steps{display:grid;gap:10px}.step{display:flex;align-items:center;gap:12px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:#0c1625}.dot{width:10px;height:10px;border-radius:50%;background:#53657d;flex:none}.step.running .dot{background:var(--amber);box-shadow:0 0 0 5px #fbbf241c}.step.done .dot{background:var(--green)}.step.error .dot{background:var(--red)}.step small{display:block;color:var(--muted)}.log{max-height:220px;overflow:auto;display:grid;gap:8px;font:12px/1.7 ui-monospace,monospace;color:#b9c9df}.log div{border-bottom:1px solid #24334a;padding-bottom:6px}.status{color:var(--muted);font-size:13px}.status.good{color:var(--green)}.status.bad{color:var(--red)}.hidden{display:none}.copy{color:var(--blue);cursor:pointer;text-decoration:underline}.footer{margin:18px 2px;color:var(--muted);font-size:12px}
+main{width:min(1000px,94%);margin:38px auto}.top{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:24px}.brand{font-size:24px;font-weight:850}.brand span{color:var(--blue)}.pill{border:1px solid var(--line);border-radius:99px;padding:4px 12px;color:var(--muted);font-size:12px}
+h1{font-size:clamp(25px,4vw,36px);margin:0 0 8px}p{color:var(--muted);margin:0 0 20px}.layout{display:grid;grid-template-columns:1fr 1fr;gap:16px}.panel{background:linear-gradient(145deg,#152238,#101a2b);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 16px 40px #0002}.wide{grid-column:1/-1}h2{font-size:17px;margin:0 0 14px}.field{display:grid;gap:6px;margin:12px 0}label{font-size:13px;color:#c7d5e8}input,select{width:100%;background:#0b1423;border:1px solid #31435e;border-radius:10px;padding:12px;color:var(--text);font:inherit;outline:none}input:focus,select:focus{border-color:var(--blue)}input[readonly]{color:#a8c8ed;background:#111e31}button{border:0;border-radius:11px;padding:11px 16px;background:var(--blue);color:#071426;font-weight:800;font:inherit;cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}.secondary{background:#263851;color:var(--text)}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.hint{font-size:12px;color:var(--muted)}.steps{display:grid;gap:10px}.step{display:flex;align-items:center;gap:12px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:#0c1625}.dot{width:10px;height:10px;border-radius:50%;background:#53657d;flex:none}.step.running .dot{background:var(--amber)}.step.done .dot{background:var(--green)}.step.error .dot{background:var(--red)}.step small{display:block;color:var(--muted)}.log{max-height:240px;overflow:auto;display:grid;gap:8px;font:12px/1.7 ui-monospace,monospace;color:#b9c9df}.log div{border-bottom:1px solid #24334a;padding-bottom:6px}.status{color:var(--muted);font-size:13px}.status.good{color:var(--green)}.status.bad{color:var(--red)}.hidden{display:none}.copy{color:var(--blue);cursor:pointer;text-decoration:underline}.footer{margin:18px 2px;color:var(--muted);font-size:12px}.check{display:flex;align-items:flex-start;gap:9px;margin:12px 0;color:#fcd5a5;font-size:12px}.check input{width:auto;margin-top:6px}
 @media(max-width:720px){.layout{grid-template-columns:1fr}.wide{grid-column:auto}.top{align-items:flex-start;flex-direction:column}main{margin:24px auto}}
 </style>
 </head>
 <body><main>
-<div class="top"><div class="brand">M<span>&</span>F <span style="color:#edf4ff">/ Cloudflare Setup</span></div><div class="pill">SESSION ONLY · NO TOKEN STORAGE</div></div>
-<h1>راه‌اندازی منابع Cloudflare</h1>
-<p>اتصال حساب، ساخت Worker از طریق API، ایجاد KV، افزودن Binding و تنظیم متغیرها؛ هر مرحله زنده نمایش داده می‌شود.</p>
+<div class="top"><div class="brand">M<span>&</span>F <span style="color:#edf4ff">/ Cloudflare Deployer</span></div><div class="pill">SESSION ONLY · NO TOKEN STORAGE</div></div>
+<h1>راه‌اندازی خودکار پنل M&F</h1>
+<p>ساخت یا استفادهٔ مجدد از KV، ساخت Worker از فایل worker.js، اتصال DB و تنظیم اطلاعات ورود و متغیرها.</p>
 <div class="layout">
 <section class="panel">
-<h2>۱. اتصال حساب</h2>
+<h2>۱. اتصال حساب Cloudflare</h2>
 <div class="field"><label for="token">Cloudflare API Token</label><input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="توکن را وارد کن"></div>
 <div class="actions"><button id="connect">اتصال و دریافت حساب‌ها</button><button id="disconnect" class="secondary" disabled>قطع اتصال</button></div>
 <div class="field"><label for="account">حساب Cloudflare</label><select id="account" disabled><option value="">ابتدا متصل شو</option></select></div>
 <div id="connection" class="status">هنوز متصل نشده‌ای.</div>
 </section>
 <section class="panel">
-<h2>۲. تنظیمات پروژه</h2>
-<div class="field"><label for="script">نام Worker</label><input id="script" value="speedtest-mf"></div>
-<div class="field"><label for="namespace">نام KV Namespace</label><input id="namespace" value="speedtest-mf"></div>
-<div class="field"><label for="binding">نام Binding</label><input id="binding" value="MF_KV"></div>
-<div class="field"><label for="appenv">APP_ENV</label><input id="appenv" value="production"></div>
-<div class="field"><label for="ttl">CACHE_TTL_SECONDS</label><input id="ttl" value="60"></div>
-<div class="actions"><button id="run" disabled>شروع ساخت و اتصال</button></div>
-<div class="hint">اگر Worker با این نام وجود نداشته باشد، ابتدا ساخته می‌شود. یک کد شروع ساده روی آن Deploy می‌شود تا بعداً بتوانی کد اصلی خودت را جایگزین کنی.</div>
+<h2>۲. منابع Cloudflare</h2>
+<div class="field"><label for="script">نام Worker</label><input id="script" value="mf-panel" maxlength="63"></div>
+<div class="field"><label>نام KV Namespace</label><input value="MF_PANEL_DB" readonly></div>
+<div class="field"><label>نام Binding</label><input value="DB" readonly></div>
+<div class="hint">اگر Namespace با همین نام از قبل وجود داشته باشد، دوباره ساخته نمی‌شود و همان مورد استفاده می‌شود. Binding در Worker دقیقاً DB خواهد بود.</div>
+</section>
+<section class="panel">
+<h2>۳. ورود مدیر</h2>
+<div class="field"><label for="adminuser">ADMIN_USER</label><input id="adminuser" value="admin" autocomplete="off"></div>
+<div class="field"><label for="adminpass">ADMIN_PASS (ضروری · Secret)</label><input id="adminpass" type="password" autocomplete="new-password" placeholder="رمز مدیر را وارد کن"></div>
+<div class="field"><label for="secretpath">SECRET_PATH (اختیاری)</label><input id="secretpath" placeholder="مثلاً my-private-path"></div>
+<div class="field"><label for="proxyip">PROXYIP (اختیاری)</label><input id="proxyip" placeholder="آدرس یا IP، در صورت نیاز"></div>
+<div class="hint">ADMIN_PASS فقط از API مربوط به Worker Secrets ثبت می‌شود؛ مقدار آن در Wrangler vars قرار نمی‌گیرد.</div>
+</section>
+<section class="panel">
+<h2>۴. کنترل جایگزینی Worker</h2>
+<label class="check"><input id="overwrite" type="checkbox"> اگر Worker با همین نام وجود دارد، اجازه می‌دهم کد آن با فایل M&F/worker.js جایگزین شود.</label>
+<div class="hint">فایل worker.js باید در پوشهٔ اصلی M&F کنار wrangler.jsonc باشد. تا وقتی فایل موجود نباشد، فقط مرحلهٔ ساخت/آماده‌سازی KV انجام می‌شود و هیچ کد آزمایشی روی Worker قرار نمی‌گیرد.</div>
+<div class="actions"><button id="run" disabled>شروع آماده‌سازی و Deploy</button></div>
 </section>
 <section class="panel wide">
-<h2>۳. وضعیت زنده عملیات</h2>
-<div class="steps" id="steps">
+<h2>۵. وضعیت عملیات</h2>
+<div class="steps">
 <div class="step" data-step="auth"><i class="dot"></i><div>بررسی دسترسی API<small>در انتظار</small></div></div>
-<div class="step" data-step="worker"><i class="dot"></i><div>ساخت و Deploy اولیه Worker<small>در انتظار</small></div></div>
-<div class="step" data-step="kv"><i class="dot"></i><div>ایجاد KV Namespace<small>در انتظار</small></div></div>
-<div class="step" data-step="binding"><i class="dot"></i><div>افزودن KV Binding به Worker<small>در انتظار</small></div></div>
-<div class="step" data-step="vars"><i class="dot"></i><div>تنظیم متغیرهای محیطی<small>در انتظار</small></div></div>
-<div class="step" data-step="finish"><i class="dot"></i><div>پایان عملیات<small>در انتظار</small></div></div>
+<div class="step" data-step="kv"><i class="dot"></i><div>ساخت یا شناسایی MF_PANEL_DB<small>در انتظار</small></div></div>
+<div class="step" data-step="source"><i class="dot"></i><div>بررسی فایل M&F/worker.js<small>در انتظار</small></div></div>
+<div class="step" data-step="worker"><i class="dot"></i><div>ساخت یا به‌روزرسانی Worker<small>در انتظار</small></div></div>
+<div class="step" data-step="secret"><i class="dot"></i><div>ثبت ADMIN_PASS به‌صورت Secret<small>در انتظار</small></div></div>
+<div class="step" data-step="finish"><i class="dot"></i><div>آماده‌سازی لینک پنل<small>در انتظار</small></div></div>
 </div>
 <div id="result" class="status" style="margin-top:14px"></div>
-<div id="snippetWrap" class="hidden" style="margin-top:14px"><label>شناسه KV و قطعه تنظیمات Wrangler</label><pre id="snippet" style="white-space:pre-wrap;overflow-wrap:anywhere;background:#091321;border:1px solid var(--line);padding:12px;border-radius:10px;color:#b9d9ff"></pre><span class="copy" id="copy">کپی تنظیمات</span></div>
+<div id="links" class="hidden" style="margin-top:14px"></div>
+<div id="snippetWrap" class="hidden" style="margin-top:14px"><label>قطعه تنظیمات Wrangler</label><pre id="snippet" style="white-space:pre-wrap;overflow-wrap:anywhere;background:#091321;border:1px solid var(--line);padding:12px;border-radius:10px;color:#b9d9ff"></pre><span class="copy" id="copy">کپی تنظیمات</span></div>
 </section>
-<section class="panel wide">
-<h2>گزارش فعالیت</h2><div id="log" class="log"><div>آماده‌به‌کار — هنوز درخواستی ارسال نشده است.</div></div>
-</section>
+<section class="panel wide"><h2>گزارش فعالیت</h2><div id="log" class="log"><div>آماده‌به‌کار — هنوز درخواستی ارسال نشده است.</div></div></section>
 </div>
-<div class="footer">توکن فقط در حافظه همین صفحه استفاده می‌شود؛ در localStorage، sessionStorage یا دیتابیس ذخیره نمی‌شود. با قطع اتصال یا بستن صفحه پاک می‌شود. درخواست‌ها مستقیماً به API کلودفلر ارسال می‌شوند.</div>
+<div class="footer">توکن و رمز مدیر فقط در حافظهٔ همین صفحه نگهداری می‌شوند و در localStorage یا sessionStorage ذخیره نمی‌شوند. ارتباط مستقیم با API رسمی Cloudflare برقرار می‌شود. پس از تست، دسترسی‌های غیرضروری توکن را حذف کن.</div>
 </main>
 <script>
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
-let token='';
-let accountId='';
-let namespaceId='';
-let busy=false;
-const api='https://api.cloudflare.com/client/v4';
-function log(message){const row=document.createElement('div');row.textContent=new Date().toLocaleTimeString('fa-IR')+'  '+message;$('log').prepend(row);}
-function step(name,state,message){const el=document.querySelector('[data-step="'+name+'"]');el.className='step '+state;el.querySelector('small').textContent=message;}
-function resetSteps(){['auth','worker','kv','binding','vars','finish'].forEach(n=>step(n,'','در انتظار'));$('result').textContent='';$('snippetWrap').classList.add('hidden');}
+const API='https://api.cloudflare.com/client/v4';
+const KV_TITLE='MF_PANEL_DB';
+let token='',accountId='',namespaceId='',busy=false;
+function log(m){const d=document.createElement('div');d.textContent=new Date().toLocaleTimeString('fa-IR')+'  '+m;$('log').prepend(d);}
+function step(n,s,m){const e=document.querySelector('[data-step="'+n+'"]');e.className='step '+s;e.querySelector('small').textContent=m;}
+function reset(){['auth','kv','source','worker','secret','finish'].forEach(n=>step(n,'','در انتظار'));$('result').textContent='';$('links').classList.add('hidden');$('snippetWrap').classList.add('hidden');}
 async function request(path,method='GET',body){
- const res=await fetch(api+path,{method,headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined,cache:'no-store'});
- let data={};try{data=await res.json()}catch(e){}
- if(!res.ok||data.success===false){const msg=(data.errors||[]).map(x=>x.message).join('؛ ')||('HTTP '+res.status);throw new Error(msg);}
- return data;
+ const r=await fetch(API+path,{method,headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body),cache:'no-store'});
+ let j={};try{j=await r.json()}catch(e){}
+ if(!r.ok||j.success===false)throw new Error((j.errors||[]).map(x=>x.message).join('؛ ')||('HTTP '+r.status));
+ return j;
 }
+function enc(v){return encodeURIComponent(v);}
 $('connect').addEventListener('click',async()=>{
- const entered=$('token').value.trim();if(!entered){$('connection').textContent='توکن را وارد کن.';return;}
- token=entered;$('token').value='';$('connect').disabled=true;
+ const v=$('token').value.trim();if(!v){$('connection').textContent='توکن را وارد کن.';return;}
+ token=v;$('token').value='';$('connect').disabled=true;
  try{
-  const verify=await request('/user/tokens/verify');
-  if(!verify.success)throw new Error('توکن معتبر نیست.');
-  const accounts=await request('/accounts?per_page=50');
-  const list=accounts.result||[];
+  await request('/user/tokens/verify');
+  const a=await request('/accounts?per_page=50'),list=a.result||[];
   if(!list.length)throw new Error('برای این توکن حسابی پیدا نشد.');
   $('account').innerHTML='';
-  list.forEach(a=>{const o=document.createElement('option');o.value=a.id;o.textContent=a.name+' · '+a.id;$('account').appendChild(o)});
-  accountId=$('account').value;
-  $('account').disabled=false;$('run').disabled=false;$('disconnect').disabled=false;
-  $('connection').textContent='اتصال موفق — '+list.length+' حساب در دسترس است.';$('connection').className='status good';
-  log('توکن تأیید شد و حساب‌ها دریافت شدند.');
+  list.forEach(x=>{const o=document.createElement('option');o.value=x.id;o.textContent=x.name+' · '+x.id;$('account').appendChild(o)});
+  accountId=$('account').value;$('account').disabled=false;$('run').disabled=false;$('disconnect').disabled=false;
+  $('connection').textContent='اتصال موفق — '+list.length+' حساب در دسترس است.';$('connection').className='status good';log('توکن تأیید شد و حساب‌ها دریافت شدند.');
  }catch(e){token='';$('connection').textContent='خطا: '+e.message;$('connection').className='status bad';log('خطای اتصال: '+e.message);}
  finally{$('connect').disabled=false;}
 });
-$('account').addEventListener('change',()=>{accountId=$('account').value});
-$('disconnect').addEventListener('click',()=>{token='';accountId='';namespaceId='';$('account').innerHTML='<option value="">ابتدا متصل شو</option>';$('account').disabled=true;$('run').disabled=true;$('disconnect').disabled=true;$('connection').textContent='اتصال قطع شد.';$('connection').className='status';resetSteps();log('توکن از حافظه صفحه پاک شد.');});
+$('account').addEventListener('change',()=>accountId=$('account').value);
+$('disconnect').addEventListener('click',()=>{token='';accountId='';namespaceId='';$('adminpass').value='';$('account').innerHTML='<option value="">ابتدا متصل شو</option>';$('account').disabled=true;$('run').disabled=true;$('disconnect').disabled=true;$('connection').textContent='اتصال قطع شد.';$('connection').className='status';reset();log('توکن و رمز از حافظه صفحه پاک شدند.');});
 $('run').addEventListener('click',async()=>{
  if(busy||!token||!accountId)return;
- const script=$('script').value.trim(),title=$('namespace').value.trim(),binding=$('binding').value.trim(),appenv=$('appenv').value,ttl=$('ttl').value.trim();
- if(!script||!title||!/^[A-Za-z_][A-Za-z0-9_]*$/.test(binding)){alert('نام Worker و KV را وارد کن و نام Binding باید شناسه معتبر جاوااسکریپت باشد.');return;}
- busy=true;$('run').disabled=true;resetSteps();
+ const script=$('script').value.trim(),admin=$('adminuser').value.trim()||'admin',pass=$('adminpass').value,path=$('secretpath').value.trim().replace(/^\/+|\/+$/g,''),proxy=$('proxyip').value.trim();
+ if(!/^[a-z0-9-]{1,63}$/.test(script)){alert('نام Worker فقط می‌تواند شامل حروف کوچک انگلیسی، عدد و خط تیره باشد.');return;}
+ if(!pass){alert('ADMIN_PASS ضروری است.');return;}
+ if(path&&(!/^[A-Za-z0-9/_-]+$/.test(path)||path.includes('..'))){alert('SECRET_PATH فقط از حروف انگلیسی، عدد، خط تیره و زیرخط استفاده کند و شامل .. نباشد.');return;}
+ if(proxy&&proxy.length>255){alert('مقدار PROXYIP بیش از حد طولانی است.');return;}
+ busy=true;$('run').disabled=true;reset();
  try{
-  step('auth','running','در حال بررسی دسترسی');log('بررسی دسترسی حساب Cloudflare…');
-  await request('/accounts/'+encodeURIComponent(accountId));
-  step('auth','done','دسترسی حساب تأیید شد');log('دسترسی حساب تأیید شد.');
-  step('worker','running','در حال ساخت و Deploy اولیه');log('در حال ساخت Worker با نام '+script+' …');
-  const starter='export default { async fetch() { return new Response("M&F Worker is ready. Replace this starter code with your application."); } };';
-  const upload=new FormData();
-  upload.append('metadata',new Blob([JSON.stringify({main_module:'worker.js',compatibility_date:'2026-11-26'})],{type:'application/json'}),'metadata.json');
-  upload.append('worker.js',new Blob([starter],{type:'application/javascript+module'}),'worker.js');
-  const workerRes=await fetch(api+'/accounts/'+encodeURIComponent(accountId)+'/workers/scripts/'+encodeURIComponent(script),{method:'PUT',headers:{'Authorization':'Bearer '+token},body:upload,cache:'no-store'});
-  let workerData={};try{workerData=await workerRes.json()}catch(e){}
-  if(!workerRes.ok||workerData.success===false){const msg=(workerData.errors||[]).map(x=>x.message).join('؛ ')||('HTTP '+workerRes.status);throw new Error('ساخت Worker ناموفق بود: '+msg);}
-  step('worker','done','Worker ساخته و نسخه اولیه Deploy شد');log('Worker ساخته و نسخه اولیه Deploy شد.');
-  step('kv','running','در حال ایجاد Namespace');log('در حال ایجاد KV Namespace با نام '+title+' …');
-  const created=await request('/accounts/'+encodeURIComponent(accountId)+'/storage/kv/namespaces','POST',{title});
-  namespaceId=created.result.id;
-  step('kv','done','ساخته شد · '+namespaceId);log('KV Namespace ساخته شد: '+namespaceId);
-  step('binding','running','در حال خواندن تنظیمات Worker');log('در حال بررسی Worker '+script+' …');
-  const settings=await request('/accounts/'+encodeURIComponent(accountId)+'/workers/scripts/'+encodeURIComponent(script)+'/settings');
-  const bindings=Array.isArray(settings.result&&settings.result.bindings)?settings.result.bindings:[];
-  const next=bindings.filter(b=>b.name!==binding&&b.name!=='APP_ENV'&&b.name!=='CACHE_TTL_SECONDS');
-  next.push({type:'kv_namespace',name:binding,namespace_id:namespaceId});
-  step('binding','running','در حال ثبت Binding');log('در حال افزودن KV Binding به تنظیمات Worker…');
-  next.push({type:'plain_text',name:'APP_ENV',text:appenv});
-  next.push({type:'plain_text',name:'CACHE_TTL_SECONDS',text:ttl});
-  const updated=await request('/accounts/'+encodeURIComponent(accountId)+'/workers/scripts/'+encodeURIComponent(script)+'/settings','PATCH',{bindings:next});
-  step('binding','done','Binding ثبت شد');step('vars','done','APP_ENV و CACHE_TTL_SECONDS ثبت شدند');
-  log('Binding و متغیرها با موفقیت ثبت شدند.');
-  step('finish','done','عملیات با موفقیت تمام شد');
-  $('result').textContent='تمام شد. KV ساخته شد و Binding و متغیرها به تنظیمات Worker اضافه شدند.';$('result').className='status good';
-  const conf={kv_namespaces:[{binding:binding,id:namespaceId}],vars:{APP_ENV:appenv,CACHE_TTL_SECONDS:ttl}};
-  $('snippet').textContent=JSON.stringify(conf,null,2);$('snippetWrap').classList.remove('hidden');
+  step('auth','running','در حال بررسی حساب');await request('/accounts/'+enc(accountId));step('auth','done','دسترسی تأیید شد');log('دسترسی حساب تأیید شد.');
+  step('kv','running','در حال بررسی Namespace');log('جست‌وجوی KV با نام '+KV_TITLE+' …');
+  let list=await request('/accounts/'+enc(accountId)+'/storage/kv/namespaces?per_page=100');
+  let found=(list.result||[]).find(x=>x.title===KV_TITLE);
+  if(found){namespaceId=found.id;log('Namespace موجود پیدا شد؛ از همان استفاده می‌شود.');}
+  else{const made=await request('/accounts/'+enc(accountId)+'/storage/kv/namespaces','POST',{title:KV_TITLE});namespaceId=made.result.id;log('KV Namespace ساخته شد.');}
+  step('kv','done','آماده · '+namespaceId);
+  step('source','running','در حال دریافت فایل از پوشه M&F');
+  const sourceUrl=new URL('../worker.js',location.href);
+  const src=await fetch(sourceUrl.href,{cache:'no-store'});
+  if(!src.ok){step('source','done','فایل هنوز اضافه نشده؛ Deploy به زمان اضافه‌شدن فایل موکول شد.');step('finish','done','KV آماده است؛ Worker هنوز Deploy نشده.');$('result').textContent='آماده‌سازی KV موفق بود. فایل M&F/worker.js هنوز در GitHub Pages موجود نیست؛ بعد از قرار دادن فایل در پوشه M&F دوباره Deploy را بزن.';$('result').className='status good';log('فایل worker.js پیدا نشد؛ عمداً هیچ کد آزمایشی Deploy نشد.');showConfig(script,admin,path,proxy);return;}
+  const code=await src.text();if(!code.trim())throw new Error('فایل worker.js خالی است.');
+  step('source','done','فایل دریافت شد · '+code.length+' کاراکتر');
+  const settings=await request('/accounts/'+enc(accountId)+'/workers/scripts/'+enc(script)+'/settings').catch(e=>null);
+  if(settings&&!$('overwrite').checked)throw new Error('Worker با این نام از قبل وجود دارد. برای جایگزینی کد آن، تیک تأیید جایگزینی را فعال کن.');
+  step('worker','running','در حال آپلود کد اصلی و Bindingها');
+  const bindings=[{type:'kv_namespace',name:'DB',namespace_id:namespaceId},{type:'plain_text',name:'ADMIN_USER',text:admin}];
+  if(path)bindings.push({type:'plain_text',name:'SECRET_PATH',text:path});
+  if(proxy)bindings.push({type:'plain_text',name:'PROXYIP',text:proxy});
+  const form=new FormData();
+  form.append('metadata',new Blob([JSON.stringify({main_module:'worker.js',compatibility_date:'2026-11-26',bindings})],{type:'application/json'}),'metadata.json');
+  form.append('worker.js',new Blob([code],{type:'application/javascript+module'}),'worker.js');
+  const upload=await fetch(API+'/accounts/'+enc(accountId)+'/workers/scripts/'+enc(script),{method:'PUT',headers:{Authorization:'Bearer '+token},body:form,cache:'no-store'});
+  let result={};try{result=await upload.json()}catch(e){}
+  if(!upload.ok||result.success===false)throw new Error('آپلود Worker ناموفق بود: '+((result.errors||[]).map(x=>x.message).join('؛ ')||('HTTP '+upload.status)));
+  step('worker','done','کد اصلی Worker آپلود و Deploy شد.');log('Worker با فایل اصلی worker.js Deploy شد.');
+  step('secret','running','در حال ثبت Secret');await request('/accounts/'+enc(accountId)+'/workers/scripts/'+enc(script)+'/secrets','PUT',{name:'ADMIN_PASS',text:pass,type:'secret_text'});
+  $('adminpass').value='';step('secret','done','ADMIN_PASS به‌صورت Secret ثبت شد.');log('ADMIN_PASS با نوع secret_text ثبت شد.');
+  step('finish','done','Deploy کامل شد.');$('result').textContent='Deploy با موفقیت انجام شد.';$('result').className='status good';showConfig(script,admin,path,proxy);
  }catch(e){
-  const active=document.querySelector('.step.running');
-  if(active){active.className='step error';active.querySelector('small').textContent='ناموفق';}
+  const active=document.querySelector('.step.running');if(active){active.className='step error';active.querySelector('small').textContent='ناموفق';}
   $('result').textContent='عملیات متوقف شد: '+e.message;$('result').className='status bad';log('خطا: '+e.message);
-  if(namespaceId)log('KV ساخته شده و شناسه آن '+namespaceId+' است؛ مراحل بعدی کامل نشدند.');
+  if(namespaceId)log('KV Namespace آماده است؛ شناسه: '+namespaceId);
  }finally{busy=false;$('run').disabled=!token;}
 });
+function showConfig(script,admin,path,proxy){
+ const cfg={name:script,main:'./worker.js',compatibility_date:'2026-11-26',kv_namespaces:[{binding:'DB',id:namespaceId}],vars:{ADMIN_USER:admin}};
+ if(path)cfg.vars.SECRET_PATH=path;if(proxy)cfg.vars.PROXYIP=proxy;
+ $('snippet').textContent=JSON.stringify(cfg,null,2);$('snippetWrap').classList.remove('hidden');
+ const host=script+'.workers.dev',base='https://'+host+(path?'/'+path:'');
+ $('links').innerHTML='<div class="status good">آدرس پنل پس از فعال بودن دامنه Worker:</div><p dir="ltr"><a style="color:#60a5fa" target="_blank" rel="noopener" href="'+base+'/panel">'+base+'/panel</a></p><div class="hint">اگر دامنه workers.dev برای حساب غیرفعال باشد، دامنهٔ سفارشی Worker خودت را جایگزین کن.</div>';$('links').classList.remove('hidden');
+}
 $('copy').addEventListener('click',async()=>{try{await navigator.clipboard.writeText($('snippet').textContent);$('copy').textContent='کپی شد';}catch(e){$('copy').textContent='کپی خودکار در دسترس نیست';}});
-window.addEventListener('pagehide',()=>{token='';accountId='';});
+window.addEventListener('pagehide',()=>{token='';accountId='';$('adminpass').value='';});
 })();
 </script></body></html>
