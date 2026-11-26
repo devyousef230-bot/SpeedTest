@@ -18,7 +18,7 @@ h1{font-size:clamp(25px,4vw,36px);margin:0 0 8px}p{color:var(--muted);margin:0 0
 <div class="layout">
 <section class="panel">
 <h2>۱. اتصال حساب Cloudflare</h2>
-<div class="field"><label for="proxyurl">آدرس واسط امن Cloudflare (یک‌بار Deploy می‌شود)</label><input id="proxyurl" type="url" autocomplete="url" spellcheck="false" placeholder="https://mf-cf-api-bridge.YOUR-SUBDOMAIN.workers.dev"></div><div class="hint">ابتدا فایل واسط داخل پوشه M&F/cors-proxy را طبق راهنمای آن Deploy کن؛ سپس آدرس workers.dev آن را اینجا وارد کن.</div><div class="field"><label for="token">Cloudflare API Token</label><input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="توکن را وارد کن"></div>
+<div class="field"><label for="proxyurl">آدرس واسط امن Cloudflare (یک‌بار Deploy می‌شود)</label><input id="proxyurl" type="url" autocomplete="url" spellcheck="false" placeholder="https://mf-cf-api-bridge.YOUR-SUBDOMAIN.workers.dev"></div><div class="hint">ابتدا فایل واسط داخل پوشه M&F/cors-proxy را طبق راهنمای آن Deploy کن؛ سپس آدرس و کلید مشترک آن را اینجا وارد کن.</div><div class="field"><label for="bridgekey">کلید محرمانهٔ واسط (BRIDGE_KEY)</label><input id="bridgekey" type="password" autocomplete="off" placeholder="همان Secret تنظیم‌شده روی Proxy Worker"></div><div class="field"><label for="token">Cloudflare API Token</label><input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="توکن را وارد کن"></div>
 <div class="actions"><button id="connect">اتصال و دریافت حساب‌ها</button><button id="disconnect" class="secondary" disabled>قطع اتصال</button></div>
 <div class="field"><label for="account">حساب Cloudflare</label><select id="account" disabled><option value="">ابتدا متصل شو</option></select></div>
 <div id="connection" class="status">هنوز متصل نشده‌ای.</div>
@@ -73,7 +73,7 @@ function log(m){const d=document.createElement('div');d.textContent=new Date().t
 function step(n,s,m){const e=document.querySelector('[data-step="'+n+'"]');e.className='step '+s;e.querySelector('small').textContent=m;}
 function reset(){['auth','kv','source','worker','secret','finish'].forEach(n=>step(n,'','در انتظار'));$('result').textContent='';$('links').classList.add('hidden');$('snippetWrap').classList.add('hidden');}
 async function request(path,method='GET',body){
- const r=await fetch(API+path,{method,headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body),cache:'no-store'});
+ const r=await fetch(API+path,{method,headers:{Authorization:'Bearer '+token,'Content-Type':'application/json','X-MF-Bridge-Key':$('bridgekey').value},body:body===undefined?undefined:JSON.stringify(body),cache:'no-store'});
  let j={};try{j=await r.json()}catch(e){}
  if(!r.ok||j.success===false)throw new Error((j.errors||[]).map(x=>x.message).join('؛ ')||('HTTP '+r.status));
  return j;
@@ -127,7 +127,7 @@ $('run').addEventListener('click',async()=>{
   const form=new FormData();
   form.append('metadata',new Blob([JSON.stringify({main_module:'worker.js',compatibility_date:'2026-11-26',bindings})],{type:'application/json'}),'metadata.json');
   form.append('worker.js',new Blob([code],{type:'application/javascript+module'}),'worker.js');
-  const upload=await fetch(API+'/accounts/'+enc(accountId)+'/workers/scripts/'+enc(script),{method:'PUT',headers:{Authorization:'Bearer '+token},body:form,cache:'no-store'});
+  const upload=await fetch(API+'/accounts/'+enc(accountId)+'/workers/scripts/'+enc(script),{method:'PUT',headers:{Authorization:'Bearer '+token,'X-MF-Bridge-Key':$('bridgekey').value},body:form,cache:'no-store'});
   let result={};try{result=await upload.json()}catch(e){}
   if(!upload.ok||result.success===false)throw new Error('آپلود Worker ناموفق بود: '+((result.errors||[]).map(x=>x.message).join('؛ ')||('HTTP '+upload.status)));
   step('worker','done','کد اصلی Worker آپلود و Deploy شد.');log('Worker با فایل اصلی worker.js Deploy شد.');
@@ -159,6 +159,6 @@ async function showConfig(script,admin,path,proxy,deployed){
  }else{$('links').classList.add('hidden');}
 }
 $('copy').addEventListener('click',async()=>{try{await navigator.clipboard.writeText($('snippet').textContent);$('copy').textContent='کپی شد';}catch(e){$('copy').textContent='کپی خودکار در دسترس نیست';}});
-window.addEventListener('pagehide',()=>{token='';accountId='';$('adminpass').value='';});
+window.addEventListener('pagehide',()=>{token='';accountId='';$('adminpass').value='';$('bridgekey').value='';});
 })();
 </script></body></html>
