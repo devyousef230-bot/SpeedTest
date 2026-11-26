@@ -14,7 +14,7 @@ h1{font-size:clamp(25px,4vw,36px);margin:0 0 8px}p{color:var(--muted);margin:0 0
 <body><main>
 <div class="top"><div class="brand">M<span>&</span>F <span style="color:#edf4ff">/ Cloudflare Setup</span></div><div class="pill">SESSION ONLY · NO TOKEN STORAGE</div></div>
 <h1>راه‌اندازی منابع Cloudflare</h1>
-<p>اتصال حساب، ساخت KV، افزودن Binding و تنظیم متغیرها؛ هر مرحله با وضعیت زنده نمایش داده می‌شود.</p>
+<p>اتصال حساب، ساخت Worker از طریق API، ایجاد KV، افزودن Binding و تنظیم متغیرها؛ هر مرحله زنده نمایش داده می‌شود.</p>
 <div class="layout">
 <section class="panel">
 <h2>۱. اتصال حساب</h2>
@@ -31,12 +31,13 @@ h1{font-size:clamp(25px,4vw,36px);margin:0 0 8px}p{color:var(--muted);margin:0 0
 <div class="field"><label for="appenv">APP_ENV</label><input id="appenv" value="production"></div>
 <div class="field"><label for="ttl">CACHE_TTL_SECONDS</label><input id="ttl" value="60"></div>
 <div class="actions"><button id="run" disabled>شروع ساخت و اتصال</button></div>
-<div class="hint">برای افزودن Binding، Worker با همین نام باید از قبل در حساب وجود داشته باشد.</div>
+<div class="hint">اگر Worker با این نام وجود نداشته باشد، ابتدا ساخته می‌شود. یک کد شروع ساده روی آن Deploy می‌شود تا بعداً بتوانی کد اصلی خودت را جایگزین کنی.</div>
 </section>
 <section class="panel wide">
 <h2>۳. وضعیت زنده عملیات</h2>
 <div class="steps" id="steps">
 <div class="step" data-step="auth"><i class="dot"></i><div>بررسی دسترسی API<small>در انتظار</small></div></div>
+<div class="step" data-step="worker"><i class="dot"></i><div>ساخت و Deploy اولیه Worker<small>در انتظار</small></div></div>
 <div class="step" data-step="kv"><i class="dot"></i><div>ایجاد KV Namespace<small>در انتظار</small></div></div>
 <div class="step" data-step="binding"><i class="dot"></i><div>افزودن KV Binding به Worker<small>در انتظار</small></div></div>
 <div class="step" data-step="vars"><i class="dot"></i><div>تنظیم متغیرهای محیطی<small>در انتظار</small></div></div>
@@ -62,7 +63,7 @@ let busy=false;
 const api='https://api.cloudflare.com/client/v4';
 function log(message){const row=document.createElement('div');row.textContent=new Date().toLocaleTimeString('fa-IR')+'  '+message;$('log').prepend(row);}
 function step(name,state,message){const el=document.querySelector('[data-step="'+name+'"]');el.className='step '+state;el.querySelector('small').textContent=message;}
-function resetSteps(){['auth','kv','binding','vars','finish'].forEach(n=>step(n,'','در انتظار'));$('result').textContent='';$('snippetWrap').classList.add('hidden');}
+function resetSteps(){['auth','worker','kv','binding','vars','finish'].forEach(n=>step(n,'','در انتظار'));$('result').textContent='';$('snippetWrap').classList.add('hidden');}
 async function request(path,method='GET',body){
  const res=await fetch(api+path,{method,headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined,cache:'no-store'});
  let data={};try{data=await res.json()}catch(e){}
@@ -98,6 +99,15 @@ $('run').addEventListener('click',async()=>{
   step('auth','running','در حال بررسی دسترسی');log('بررسی دسترسی حساب Cloudflare…');
   await request('/accounts/'+encodeURIComponent(accountId));
   step('auth','done','دسترسی حساب تأیید شد');log('دسترسی حساب تأیید شد.');
+  step('worker','running','در حال ساخت و Deploy اولیه');log('در حال ساخت Worker با نام '+script+' …');
+  const starter='export default { async fetch() { return new Response("M&F Worker is ready. Replace this starter code with your application."); } };';
+  const upload=new FormData();
+  upload.append('metadata',new Blob([JSON.stringify({main_module:'worker.js',compatibility_date:'2026-11-26'})],{type:'application/json'}),'metadata.json');
+  upload.append('worker.js',new Blob([starter],{type:'application/javascript+module'}),'worker.js');
+  const workerRes=await fetch(api+'/accounts/'+encodeURIComponent(accountId)+'/workers/scripts/'+encodeURIComponent(script),{method:'PUT',headers:{'Authorization':'Bearer '+token},body:upload,cache:'no-store'});
+  let workerData={};try{workerData=await workerRes.json()}catch(e){}
+  if(!workerRes.ok||workerData.success===false){const msg=(workerData.errors||[]).map(x=>x.message).join('؛ ')||('HTTP '+workerRes.status);throw new Error('ساخت Worker ناموفق بود: '+msg);}
+  step('worker','done','Worker ساخته و نسخه اولیه Deploy شد');log('Worker ساخته و نسخه اولیه Deploy شد.');
   step('kv','running','در حال ایجاد Namespace');log('در حال ایجاد KV Namespace با نام '+title+' …');
   const created=await request('/accounts/'+encodeURIComponent(accountId)+'/storage/kv/namespaces','POST',{title});
   namespaceId=created.result.id;
