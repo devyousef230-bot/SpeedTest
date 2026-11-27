@@ -924,9 +924,12 @@ const LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="132 95 990 10
 // ---------- Cover & Panel UI ----------
 const COVER_PAGE = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>M&F Panel</title><meta name="robots" content="noindex,nofollow">
 <style>
+
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800;900&display=swap');
+
 :root{--bg:#050304;--red:#ff2a2a;--red2:#c1121f;--soft:cubic-bezier(.45,0,.55,1);--out:cubic-bezier(.22,1,.36,1)}
 *{box-sizing:border-box}
-body{margin:0;min-height:100svh;display:grid;place-items:center;background:radial-gradient(55% 45% at 88% 102%,rgba(255,42,42,.13),transparent 70%),var(--bg);color:#f6efef;font-family:Tahoma,"Segoe UI",system-ui,sans-serif;overflow:hidden}
+body{margin:0;min-height:100svh;display:grid;place-items:center;background:radial-gradient(55% 45% at 88% 102%,rgba(255,42,42,.13),transparent 70%),var(--bg);color:#f6efef;font-family:Vazirmatn,sans-serif;overflow:hidden}
 .smoke{position:fixed;border-radius:50%;pointer-events:none;will-change:transform;z-index:0}
 .s1{width:46vmax;height:46vmax;left:-14vmax;bottom:-20vmax;background:radial-gradient(circle,rgba(179,18,26,.55) 0%,rgba(120,0,10,.25) 45%,transparent 70%);animation:dr1 38s var(--soft) infinite}
 .s2{width:34vmax;height:34vmax;right:-10vmax;top:-14vmax;background:radial-gradient(circle,rgba(122,10,18,.5),transparent 68%);animation:dr2 44s var(--soft) infinite}
@@ -993,7 +996,10 @@ const LOGIN = (sec) => `<!doctype html><html lang="fa" dir="rtl"><head><meta cha
 <style>
 :root{--bg:#050304;--red:#ff2a2a;--red2:#c1121f;--soft:cubic-bezier(.45,0,.55,1);--out:cubic-bezier(.22,1,.36,1)}
 *{box-sizing:border-box}
-body{margin:0;min-height:100svh;display:grid;place-items:center;background:radial-gradient(55% 45% at 88% 102%,rgba(255,42,42,.13),transparent 70%),var(--bg);color:#f6efef;font-family:Tahoma,"Segoe UI",system-ui,sans-serif;overflow:hidden}
+
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800;900&display=swap');
+
+body{margin:0;min-height:100svh;display:grid;place-items:center;background:radial-gradient(55% 45% at 88% 102%,rgba(255,42,42,.13),transparent 70%),var(--bg);color:#f6efef;font-family:Vazirmatn,sans-serif;overflow:hidden}
 .smoke{position:fixed;border-radius:50%;pointer-events:none;will-change:transform;z-index:0}
 .s1{width:46vmax;height:46vmax;left:-14vmax;bottom:-20vmax;background:radial-gradient(circle,rgba(179,18,26,.55) 0%,rgba(120,0,10,.25) 45%,transparent 70%);animation:dr1 38s var(--soft) infinite}
 .s2{width:34vmax;height:34vmax;right:-10vmax;top:-14vmax;background:radial-gradient(circle,rgba(122,10,18,.5),transparent 68%);animation:dr2 44s var(--soft) infinite}
@@ -1070,10 +1076,13 @@ const PAGE = (sec) => `<!doctype html><html lang="fa" dir="rtl"><head><meta char
 <link rel="icon" type="image/svg+xml" href="/logo.svg">
 
 <style>
+
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800;900&display=swap');
+
 :root{--bg:#050304;--card:rgba(17,11,13,.82);--line:rgba(255,90,90,.20);--field:rgba(255,255,255,.05);
  --txt:#f6efef;--mut:#a1969a;--red:#ff2a2a;--red2:#c1121f;--gr:#ff6a55;--out:cubic-bezier(.22,1,.36,1);--soft:cubic-bezier(.45,0,.55,1)}
 *{box-sizing:border-box}
-body{margin:0;padding:20px 14px 70px;max-width:940px;margin-inline:auto;color:var(--txt);font:15px/1.7 system-ui,Tahoma,"Segoe UI",sans-serif;
+body{margin:0;padding:20px 14px 70px;max-width:940px;margin-inline:auto;color:var(--txt); font-family:Vazirmatn,sans-serif;
  background:radial-gradient(55% 40% at 85% -5%,rgba(255,42,42,.12),transparent 65%),radial-gradient(45% 35% at 0% 105%,rgba(178,18,31,.14),transparent 60%),var(--bg);
  -webkit-font-smoothing:antialiased}
 .smoke{position:fixed;border-radius:50%;pointer-events:none;z-index:-1;will-change:transform}
