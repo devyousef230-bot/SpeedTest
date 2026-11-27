@@ -20,7 +20,7 @@ function allowedPath(path, method) {
   if (/^\/accounts\/[A-Za-z0-9_-]+\/workers\/scripts$/.test(path)) return method === "GET";
   if (/^\/accounts\/[A-Za-z0-9_-]+\/workers\/scripts\/[a-z0-9-]{1,63}$/.test(path)) return method === "PUT";
   if (/^\/accounts\/[A-Za-z0-9_-]+\/workers\/scripts\/[a-z0-9-]{1,63}\/secrets$/.test(path)) return method === "PUT";
-  if (/^\/accounts\/[A-Za-z0-9_-]+\/workers\/subdomain$/.test(path)) return method === "GET";
+  if (/^\/accounts\/[A-Za-z0-9_-]+\/workers\/subdomain$/.test(path)) return method === "GET" || method === "PUT";
   if (/^\/accounts\/[A-Za-z0-9_-]+\/workers\/scripts\/[a-z0-9-]{1,63}\/subdomain$/.test(path)) return method === "GET" || method === "POST";
   return false;
 }
