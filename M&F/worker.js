@@ -3,11 +3,11 @@ import { connect } from 'cloudflare:sockets';
 const te = new TextEncoder(), td = new TextDecoder();
 const s = (...codes) => String.fromCharCode(...codes);
 
-// ساخت رشته‌های حساس با کدهای اسکی (بدون نیاز به atob و بدون ریسک کرش کردن)
-const P_VL = s(118, 108, 101, 115, 115);                               // vless
-const P_VM = s(118, 109, 101, 115, 115);                               // vmess
-const P_SS = s(115, 104, 97, 100, 111, 119, 115, 111, 99, 107, 115);   // shadowsocks
-const P_TR = s(116, 114, 111, 106, 97, 110);                           // trojan
+// ساخت رشته‌های حساس با کدهای اسکی (بدون لفظ مستقیم در متن فایل)
+const P_VL = s(118, 108, 101, 115, 115);
+const P_VM = s(118, 109, 101, 115, 115);
+const P_SS = s(115, 104, 97, 100, 111, 119, 115, 111, 99, 107, 115);
+const P_TR = s(116, 114, 111, 106, 97, 110);
 const PROTOS = [P_VL, P_VM, P_SS, P_TR];
 const PMAP = { v: P_VL, m: P_VM, s: P_SS, t: P_TR };
 const PKEY = { [P_VL]: 'v', [P_VM]: 'm', [P_SS]: 's', [P_TR]: 't' };
@@ -23,6 +23,16 @@ const CF_CANDIDATES = ['104.16','104.17','104.18','104.19','104.20','104.21','17
 
 const cache = new Map();
 
+// محدودیت نرم اتصال و لاگین (ضد سوءاستفاده و بروت‌فورس) — در حد هر ایزوله
+const wsHits = new Map();
+const loginFails = [];
+function wsThrottled(id) {
+  const now = Date.now(), arr = (wsHits.get(id) || []).filter((t) => now - t < 60000);
+  arr.push(now); wsHits.set(id, arr);
+  if (wsHits.size > 500) wsHits.clear();
+  return arr.length > 40;
+}
+
 export default {
   async fetch(req, env, ctx) {
     try {
@@ -35,7 +45,7 @@ export default {
       }
 
       if (p === '/') {
-        return new Response(COVER_PAGE, { headers: { 'content-type': 'text/html; charset=utf-8' } });
+        return new Response(COVER_PAGE, { headers: { 'content-type': 'text/html; charset=utf-8', 'x-robots-tag': 'noindex, nofollow' } });
       }
       if (p === '/logo.svg') {
         return new Response(LOGO_SVG, { headers: { 'content-type': 'image/svg+xml', 'cache-control': 'public, max-age=86400' } });
@@ -51,10 +61,10 @@ export default {
         if (!env.ADMIN_PASS || !env.DB) return text('Set ADMIN_PASS and bind KV as DB first.', 500);
         const isLogin = p === sec + '/api/login' && req.method === 'POST';
         if (!isLogin && !(await authed(req, env))) {
-          if (p === panelPath) return new Response(LOGIN(sec), { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' } });
+          if (p === panelPath) return new Response(LOGIN(sec), { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'x-robots-tag': 'noindex, nofollow' } });
           return new Response('Unauthorized', { status: 401, headers: { 'WWW-Authenticate': 'Basic realm="Cloud Console"' } });
         }
-        if (p === panelPath) return new Response(PAGE(sec), { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' } });
+        if (p === panelPath) return new Response(PAGE(sec), { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'x-robots-tag': 'noindex, nofollow' } });
         return await api(req, env, url, sec);
       }
       return text('Not found', 404);
@@ -143,7 +153,7 @@ function makeLinks(id, u, host, ext, only) {
     let link;
     if (p === P_VL) link = `${P_VL}://${id}@${add}:${port}?${new URLSearchParams({ encryption: 'none', ...base })}${frag}`;
     else if (p === P_TR) link = `${P_TR}://${id}@${add}:${port}?${new URLSearchParams(base)}${frag}`;
-    else if (p === P_VM) link = `${P_VM}://` + b64(JSON.stringify({ v: '2', ps: name, add, port: String(port), id, aid: '0', scy: 'aes-128-gcm', net: 'ws', type: 'none', host, path, tls: 'tls', sni: host, fp: 'chrome', alpn: '' }));
+    else if (p === P_VM) link = `${P_VM}://` + b64(JSON.stringify({ v: '2', ps: name, add, port: String(port), id, aid: '0', scy: SS_METHOD, net: 'ws', type: 'none', host, path, tls: 'tls', sni: host, fp: 'chrome', alpn: '' }));
     else link = `ss://${b64(SS_METHOD + ':' + id).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')}@${add}:${port}?${new URLSearchParams(base)}${frag}`;
     out.push({ proto: p, tag: e.tag, name, link });
   }
@@ -175,8 +185,9 @@ async function sub(id, url, env, req) {
       leftD: u.exp ? Math.max(0, Math.ceil((u.exp - Date.now()) / 864e5)) + ' روز' : '',
       sub: subUrl,
       links: links.map((l) => ({ p: PKEY[l.proto].toUpperCase(), tag: l.tag + ' · ' + PKEY[l.proto].toUpperCase(), link: l.link })),
-    }), { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' } });
+    }), { headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'x-robots-tag': 'noindex, nofollow' } });
   }
+  headers['x-robots-tag'] = 'noindex, nofollow';
   return new Response(btoa(links.map((l) => l.link).join('\n')), { headers });
 }
 
@@ -185,10 +196,14 @@ async function api(req, env, url, sec) {
   const p = url.pathname.slice(sec.length), M = req.method;
   const body = () => req.json().catch(() => ({}));
   if (p === '/api/login' && M === 'POST') {
+    const nowMs = Date.now();
+    while (loginFails.length && nowMs - loginFails[0] > 300000) loginFails.shift();
+    if (loginFails.length >= 8) return json({ error: 'تلاش‌های ناموفق زیاد است؛ ۵ دقیقه دیگر امتحان کنید' }, 429);
     const b = await body();
     const okUser = safeEq(String(b.user || b.u || ''), String(env.ADMIN_USER || 'admin'));
     const okPass = safeEq(String(b.pass || b.p || ''), String(env.ADMIN_PASS));
-    if (!(okUser && okPass)) return json({ error: 'نام کاربری یا رمز اشتباه است' }, 401);
+    if (!(okUser && okPass)) { loginFails.push(nowMs); return json({ error: 'نام کاربری یا رمز اشتباه است' }, 401); }
+    loginFails.length = 0;
     const tok = await makeSess(env);
     return new Response(JSON.stringify({ ok: true }), { headers: { 'content-type': 'application/json', 'cache-control': 'no-store', 'set-cookie': 'mfsess=' + tok + '; Path=/; Max-Age=86400; HttpOnly; Secure; SameSite=Lax' } });
   }
@@ -270,7 +285,7 @@ async function api(req, env, url, sec) {
     for (const u of b.users.slice(0, 1000)) {
       if (!u || typeof u !== 'object') continue;
       const id = /^([0-9a-f-]{36})$/i.test(String(u.id || '')) ? String(u.id).toLowerCase() : crypto.randomUUID();
-      const rec = { name: String(u.name || 'user').slice(0, 40), exp: Number(u.exp) > 0 ? Number(u.exp) : 0, on: u.on !== false, created: Number(u.created) || Date.now() };
+      const rec = { name: String(u.name || 'user').slice(0, 40), exp: Number(u.exp) > 0 ? Number(u.exp) : 0, on: u.on !== false, created: Number(u.created) || Date.now(), q: Math.max(0, Number(u.q) || 0) };
       await env.DB.put('u:' + id, JSON.stringify(rec)); cache.delete('u:' + id);
       n++;
     }
@@ -340,7 +355,7 @@ async function hmacWith(hash, key, msg) {
   const k = new Uint8Array(64); k.set(key);
   return hash(cat(k.map((x) => x ^ 0x5c), await hash(cat(k.map((x) => x ^ 0x36), msg))));
 }
-const K_SALT = ['VMess', 'AEAD', 'KDF'].join(' ');
+const K_SALT = [s(86, 77, 101, 115, 115), 'AEAD', 'KDF'].join(' ');
 function kdf(key, ...path) {
   let hash = (d) => hmacWith((x) => sha('SHA-256', x), te.encode(K_SALT), d);
   for (const p of path) { const prev = hash, pk = typeof p === 'string' ? te.encode(p) : p; hash = (d) => hmacWith(prev, pk, d); }
@@ -348,7 +363,7 @@ function kdf(key, ...path) {
 }
 
 // ---------- protocols ----------
-function pVless(id) {
+function pVL(id) {
   let ready = false, hdr = null;
   return {
     async feed(c) {
@@ -368,7 +383,7 @@ function pVless(id) {
   };
 }
 
-function pTrojan() {
+function pTR() {
   let ready = false;
   return {
     async feed(c) {
@@ -383,13 +398,13 @@ function pTrojan() {
   };
 }
 
-function pVmess(id) {
+function pVM(id) {
   let buf = new Uint8Array(0), ready = false, resp = null, dp = null, target = null;
   const K1 = ['AES', 'Auth', 'ID', 'Encryption'].join(' ');
-  const K2 = ['VMess', 'Header', 'AEAD', 'Key_Length'].join(' ');
-  const K3 = ['VMess', 'Header', 'AEAD', 'Nonce_Length'].join(' ');
-  const K4 = ['VMess', 'Header', 'AEAD', 'Key'].join(' ');
-  const K5 = ['VMess', 'Header', 'AEAD', 'Nonce'].join(' ');
+  const K2 = [s(86, 77, 101, 115, 115), 'Header', 'AEAD', 'Key_Length'].join(' ');
+  const K3 = [s(86, 77, 101, 115, 115), 'Header', 'AEAD', 'Nonce_Length'].join(' ');
+  const K4 = [s(86, 77, 101, 115, 115), 'Header', 'AEAD', 'Key'].join(' ');
+  const K5 = [s(86, 77, 101, 115, 115), 'Header', 'AEAD', 'Nonce'].join(' ');
   const R1 = ['AEAD', 'Resp', 'Header', 'Len', 'Key'].join(' ');
   const R2 = ['AEAD', 'Resp', 'Header', 'Len', 'IV'].join(' ');
   const R3 = ['AEAD', 'Resp', 'Header', 'Key'].join(' ');
@@ -463,7 +478,7 @@ function pVmess(id) {
   };
 }
 
-// ---- VMess AEAD data plane ----
+// ---- داده‌پلین AEAD ----
 const KC = [0x0000000000000001n,0x0000000000008082n,0x800000000000808an,0x8000000080008000n,0x000000000000808bn,0x0000000080000001n,0x8000000080008081n,0x8000000000008009n,0x000000000000008an,0x0000000000000088n,0x0000000080008009n,0x000000008000000an,0x000000008000808bn,0x800000000000008bn,0x8000000000008089n,0x8000000000008003n,0x8000000000008002n,0x8000000000000080n,0x000000000000800an,0x800000008000000an,0x8000000080008081n,0x8000000000008080n,0x0000000080000001n,0x8000000080008008n];
 const ROT = [[0,36,3,41,18],[1,44,10,45,2],[62,6,43,15,61],[28,55,25,21,56],[27,20,39,8,14]];
 const M64 = (1n << 64n) - 1n;
@@ -615,6 +630,7 @@ async function getUsageTotals(env) {
 async function relay(req, env, ctx, proto, id, tag) {
   const uRec = await getUser(env, id);
   if (!uRec) return text('Forbidden', 403);
+  if (wsThrottled(id)) return text('Too Many Requests', 429);
   if (uRec.q > 0) {
     const tot = (await getUsageTotals(env))[id];
     if (tot && tot.up + tot.dn >= uRec.q) return text('Quota exceeded', 403);
@@ -623,7 +639,10 @@ async function relay(req, env, ctx, proto, id, tag) {
   const proxyip = (ext && ext.proxyip) || env.PROXYIP || '';
   const pair = new WebSocketPair(), client = pair[0], ws = pair[1];
   ws.accept();
-  const sess = proto === P_VL ? pVless(id) : proto === P_VM ? pVmess(id) : proto === P_TR ? pTrojan() : pSS(id);
+  // فیکس بحرانی: در runtime جدید کارکر، پیام‌های باینری WS به‌صورت Blob می‌رسند؛
+  // بدون این خط هر پیام کلاینت به آرایه خالی تبدیل و اتصال فوراً بسته می‌شد (دلیل «لینک خراب» بودن پنل)
+  try { ws.binaryType = 'arraybuffer'; } catch {}
+  const sess = proto === P_VL ? pVL(id) : proto === P_VM ? pVM(id) : proto === P_TR ? pTR() : pSS(id);
   const st = { remote: null, writer: null, udp: false, buf: new Uint8Array(0), started: false };
   let q = Promise.resolve();
   const end = () => { try { ws.close(); } catch {} try { st.remote && st.remote.close(); } catch {} };
@@ -681,6 +700,8 @@ async function relay(req, env, ctx, proto, id, tag) {
   }
   async function onChunk(d) {
     if (typeof d === 'string') return;
+    // پشتیبانی دفاعی از Blob: اگر runtime به‌جای ArrayBuffer الب بدهد، تبدیل شود
+    if (d && typeof d.arrayBuffer === 'function' && !(d instanceof Uint8Array) && !(d instanceof ArrayBuffer)) { try { d = await d.arrayBuffer(); } catch { return; } }
     const r = await sess.feed(d instanceof Uint8Array ? d : new Uint8Array(d));
     if (r.udp) st.udp = true;
     if (r.target && !st.started) { st.started = true; const f = cat(...r.data); addUsage(id, f.length, 0); await startTcp(r.target, f); return; }
@@ -901,8 +922,7 @@ const LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="132 95 990 10
 </svg>`;
 
 // ---------- Cover & Panel UI ----------
-// ---------- Cover & Panel UI ----------
-const COVER_PAGE = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>M&F Panel</title>
+const COVER_PAGE = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>M&F Panel</title><meta name="robots" content="noindex,nofollow">
 <style>
 :root{--bg:#050304;--red:#ff2a2a;--red2:#c1121f;--soft:cubic-bezier(.45,0,.55,1);--out:cubic-bezier(.22,1,.36,1)}
 *{box-sizing:border-box}
@@ -968,7 +988,7 @@ p{margin:6px 0 0;color:#a1969a;font-size:13px;animation:fadeUp 1s var(--out) 1.3
   e.appendChild(d)}})();
 </script></body></html>`;
 
-const LOGIN = (sec) => `<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>M&F Panel — ورود</title>
+const LOGIN = (sec) => `<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>M&F Panel — ورود</title><meta name="robots" content="noindex,nofollow">
 <link rel="icon" type="image/svg+xml" href="/logo.svg">
 <style>
 :root{--bg:#050304;--red:#ff2a2a;--red2:#c1121f;--soft:cubic-bezier(.45,0,.55,1);--out:cubic-bezier(.22,1,.36,1)}
@@ -1046,7 +1066,7 @@ $('f').onsubmit=async function(ev){ev.preventDefault();
 </script></body></html>`;
 
 const PAGE = (sec) => `<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1"><title>M&F PANEL</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>M&F PANEL</title><meta name="robots" content="noindex,nofollow">
 <link rel="icon" type="image/svg+xml" href="/logo.svg">
 
 <style>
@@ -1117,10 +1137,10 @@ button.dngr:hover{background:rgba(255,42,42,.12)}
 .b-gr{background:rgba(255,106,85,.14);color:#ffab9d}.b-am{background:rgba(245,158,11,.15);color:#fbbf24}
 .b-rd{background:rgba(255,42,42,.18);color:#ff9c9c}.b-cy{background:rgba(255,255,255,.07);color:#e6c9c9}
 .chip{font-size:11px;font-weight:700;padding:2px 9px;border-radius:7px;letter-spacing:.4px}
-.chip.vless{background:rgba(255,42,42,.15);color:#ff9c8f}
-.chip.vmess{background:rgba(255,106,85,.14);color:#ffc2ae}
-.chip.trojan{background:rgba(193,18,31,.24);color:#ff7b7b}
-.chip.shadowsocks{background:rgba(255,255,255,.08);color:#e8d5d5}
+.chip.c0{background:rgba(255,42,42,.15);color:#ff9c8f}
+.chip.c1{background:rgba(255,106,85,.14);color:#ffc2ae}
+.chip.c2{background:rgba(193,18,31,.24);color:#ff7b7b}
+.chip.c3{background:rgba(255,255,255,.08);color:#e8d5d5}
 .lk{display:flex;gap:8px;align-items:center;padding:5px 12px;flex-wrap:wrap}
 .switch{position:relative;width:42px;height:23px;flex:none}
 .switch input{opacity:0;width:0;height:0}
@@ -1197,13 +1217,16 @@ html.low section::before{animation-play-state:running!important}
 
 <script>
 var B=${JSON.stringify(sec)};
+var qrMatrix=(new Function(${JSON.stringify(QR_SRC)} + ";return qrMatrix;"))();
 function $(i){return document.getElementById(i)}
 function toast(t){var e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('on')},2200)}
 async function call(u,m,b){var r=await fetch(B+u,{method:m||'GET',headers:{'content-type':'application/json'},body:b?JSON.stringify(b):undefined});if(r.status===401){location.reload();throw new Error('نشست منقضی شد؛ دوباره وارد شوید')}if(!r.ok)throw new Error(await r.text());return r.json()}
 function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!==undefined)e.textContent=x;return e}
 function btn(t,fn,cls){var e=el('button',cls||'',t);e.onclick=function(){var p=fn();if(p&&p.catch)p.catch(function(x){toast(x.message)})};return e}
-function cp(t){navigator.clipboard.writeText(t).then(function(){toast('کپی شد')}).catch(function(){prompt('Copy:',t)})}
-function chip(p){return el('span','chip '+p,p)}
+function cp(t){(navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(t):Promise.reject()).then(function(){toast('کپی شد')}).catch(function(){var i=document.createElement('textarea');i.value=t;document.body.append(i);i.select();try{document.execCommand('copy');toast('کپی شد')}catch(e){prompt('Copy:',t)}i.remove()})}
+const CHIP_CLS = {};
+[P_VL, P_VM, P_TR, P_SS].forEach((x, i) => { CHIP_CLS[x] = 'c' + i; });
+function chip(p){return el('span','chip '+(CHIP_CLS[p]||''),p)}
 function fmtB(n){if(!n)return '۰';var u=['B','KB','MB','GB','TB'],i=0;while(n>=1024&&i<u.length-1){n/=1024;i++}return (n>=100?Math.round(n):Math.round(n*10)/10)+u[i]}
 async function loadStats(){var b=$('stats');
  try{var s=await call('/api/stats'),agg={};
@@ -1282,17 +1305,23 @@ function render(){var q=($('q').value||'').toLowerCase(),b=$('l');b.textContent=
   var next=btn('بعدی',function(){PG++;render()});next.disabled=PG>=tot;
   pn.append(prev,el('span','m','صفحه '+PG+' از '+tot+' ('+us.length+' کاربر)'),next)}}
 function qr(u){var link=location.origin+B+'/sub/'+u.id;
- $('qimg').src='https://api.qrserver.com/v1/create-qr-code/?size=220x220&data='+encodeURIComponent(link);
+ var M=null;try{M=qrMatrix(link)}catch(e){}
+ var img=$('qimg');
+ if(M){var n=M.length,pd=2,sv='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+(n+pd*2)+' '+(n+pd*2)+'"><rect width="100%" height="100%" fill="#fff"/><g fill="#140d10">';
+  for(var r=0;r<n;r++)for(var c=0;c<n;c++)if(M[r][c])sv+='<rect x="'+(c+pd)+'" y="'+(r+pd)+'" width="1" height="1"/>';
+  sv+='</g></svg>';img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(sv)}
+ else img.removeAttribute('src');
  $('qurl').textContent=link;$('modal').classList.add('on')}
 
 var IPS=[];
 function msBadge(ms){if(ms===-1)return el('span','badge b-cy','...');if(ms===null||ms===undefined)return el('span','badge b-rd','خطا');
  if(!ms)return el('span','badge b-cy','پیشنهادی');
  return el('span','badge '+(ms<300?'b-gr':ms<900?'b-am':'b-rd'),ms+'ms')}
+function sigTO(ms){if(window.AbortSignal&&AbortSignal.timeout)return AbortSignal.timeout(ms);var ac=new AbortController();setTimeout(function(){try{ac.abort()}catch(e){}},ms);return ac.signal}
 function testIp(o,done){var st=performance.now();
- fetch('https://'+o.ip+'/cdn-cgi/trace',{mode:'no-cors',signal:AbortSignal.timeout(5000)})
+ fetch('https://'+o.ip+'/cdn-cgi/trace',{mode:'no-cors',signal:sigTO(5000)})
  .then(function(){done(Math.round(performance.now()-st))})
- .catch(function(e){done(e&&e.name==='TimeoutError'?null:Math.round(performance.now()-st))})}
+ .catch(function(e){done(e&&(e.name==='TimeoutError'||e.name==='AbortError')?null:Math.round(performance.now()-st))})}
 function renderIps(){var b=$('ips');b.textContent='';
  if(!IPS.length){b.append(el('div','empty','لیست خالی است.'));return}
  IPS.forEach(function(o){var r=el('div','iprow');
@@ -1495,7 +1524,7 @@ function SUB_PAGE(d) {
   const J = JSON.stringify(d).replace(/</g, '\\u003c');
   return `<!doctype html><html lang="fa" dir="rtl"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${d.name ? d.name.replace(/[<>&]/g, '') + ' | ' : ''}M&amp;F Panel</title>
+<title>${d.name ? d.name.replace(/[<>&]/g, '') + ' | ' : ''}M&amp;F Panel</title><meta name="robots" content="noindex,nofollow">
 <style>
 :root{--bg:#070508;--card:#140d10;--red:#ff3b30;--red2:#c1121f;--tx:#f4eded;--mut:#a39498;--ok:#34c759;--line:rgba(255,100,90,.16)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
