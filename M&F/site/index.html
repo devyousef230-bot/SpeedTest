@@ -117,7 +117,7 @@ $('run').addEventListener('click',async()=>{
   if(found){namespaceId=found.id;log('Namespace موجود پیدا شد؛ از همان استفاده می‌شود.');}
   else{const made=await request('/accounts/'+enc(accountId)+'/storage/kv/namespaces','POST',{title:KV_TITLE});namespaceId=made.result.id;log('KV Namespace ساخته شد.');}
   step('kv','done','آماده · '+namespaceId);
-  step('source','running','در حال دریافت فایل از پوشه M&F');const src=await fetch(new URL('../worker.js',location.href).href,{cache:'no-store'});
+  step('source','running','در حال دریافت فایل از پوشه M&F');const src=await fetch(new URL('worker.js',location.href).href,{cache:'no-store'});
   if(!src.ok){step('source','done','فایل worker.js در دسترس نیست');throw new Error('فایل M&F/worker.js دریافت نشد.');}
   const code=await src.text();if(!code.trim())throw new Error('فایل worker.js خالی است.');step('source','done','فایل دریافت شد · '+code.length+' کاراکتر');
   const existing=await request('/accounts/'+enc(accountId)+'/workers/scripts?per_page=100');if((existing.result||[]).some(x=>x.id===script)&&!$('overwrite').checked)throw new Error('Worker با این نام از قبل وجود دارد. برای جایگزینی کد آن، تأیید جایگزینی را فعال کنید.');
