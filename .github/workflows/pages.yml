@@ -31,8 +31,11 @@ jobs:
         uses: actions/configure-pages@v5
       - name: Prepare Worker source for Pages
         run: |
+          mkdir -p "M&F/site/M&F"
           cp "M&F/worker.js" "M&F/site/worker.js"
+          cp "M&F/worker.js" "M&F/site/M&F/worker.js"
           test -s "M&F/site/worker.js"
+          test -s "M&F/site/M&F/worker.js"
           test -s "M&F/site/index.html"
           echo "Worker asset and deployer page are ready for Pages."
       - name: Upload site artifact
@@ -48,13 +51,13 @@ jobs:
         run: |
           set -euo pipefail
           SITE_URL="${SITE_URL%/}"
-          echo "Checking ${SITE_URL}/worker.js"
+          echo "Checking ${SITE_URL}/M%26F/worker.js"
           curl --fail --location --retry 8 --retry-delay 5 --retry-all-errors \
             --output /tmp/published-worker.js \
             --write-out "HTTP %{http_code}\n" \
-            "${SITE_URL}/worker.js"
+            "${SITE_URL}/M%26F/worker.js"
           test -s /tmp/published-worker.js
-          echo "Worker asset is publicly reachable and non-empty."
+          echo "Worker asset is publicly reachable at the configured path."
           curl --fail --location --retry 8 --retry-delay 5 --retry-all-errors --output /tmp/deployer.html "${SITE_URL}/"
           grep -Fq "const WORKER_SOURCE_URL=new URL('M%26F/worker.js',location.href)" /tmp/deployer.html
-          echo "Canonical deployer page uses the sibling worker.js asset."
+          echo "Canonical deployer page points to the published M%26F/worker.js asset."
