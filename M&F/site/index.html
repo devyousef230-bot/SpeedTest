@@ -153,7 +153,7 @@ async function showConfig(script,admin,path,proxy,deployed){
   try{
    accountDomain=await request('/accounts/'+enc(accountId)+'/workers/subdomain');
   }catch(e){
-   if(!/\\[10007\\]/.test(e.message))throw new Error('دریافت وضعیت ساب‌دامنه حساب ناموفق بود: '+e.message);
+   if(!e.message.includes('[10007]'))throw new Error('دریافت وضعیت ساب‌دامنه حساب ناموفق بود: '+e.message);
    log('ساب‌دامنه workers.dev وجود ندارد؛ ساخت خودکار با API آغاز شد.');
   }
   let subdomain=accountDomain&&accountDomain.result&&accountDomain.result.subdomain?String(accountDomain.result.subdomain).trim():'';
