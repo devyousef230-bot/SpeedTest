@@ -71,7 +71,7 @@ const $=id=>document.getElementById(id);
 const INSTALLER_URL='https://speedtest.jrqdkve5pb.workers.dev';
 const API=INSTALLER_URL+'/api/client/v4';
 const KV_TITLE='MF_PANEL_DB';
-const WORKER_SOURCE_URL=new URL('worker.js',location.href);
+const WORKER_SOURCE_URL=new URL('M%26F/worker.js',location.href);
 let token='',accountId='',namespaceId='',busy=false;
 function log(m){const d=document.createElement('div');d.textContent=new Date().toLocaleTimeString('fa-IR')+'  '+m;$('log').prepend(d);}
 function step(n,s,m){const e=document.querySelector('[data-step="'+n+'"]');if(!e)return;e.className='step '+s;e.querySelector('small').textContent=m;}
