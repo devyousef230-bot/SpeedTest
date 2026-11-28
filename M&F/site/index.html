@@ -146,34 +146,39 @@ $('run').addEventListener('click',async()=>{
 });
 
 async function showConfig(script,admin,path,proxy,deployed){
- const cfg={name:script,main:'./worker.js',compatibility_date:'2026-11-26',kv_namespaces:[{binding:'DB',id:namespaceId}],vars:{ADMIN_USER:admin}};if(path)cfg.vars.SECRET_PATH=path;if(proxy)cfg.vars.PROXYIP=proxy;$('snippet').textContent=JSON.stringify(cfg,null,2);$('snippetWrap').classList.remove('hidden');
+ const cfg={name:script,main:'./worker.js',compatibility_date:'2026-11-26',workers_dev:true,kv_namespaces:[{binding:'DB',id:namespaceId}],vars:{ADMIN_USER:admin}};if(path)cfg.vars.SECRET_PATH=path;if(proxy)cfg.vars.PROXYIP=proxy;$('snippet').textContent=JSON.stringify(cfg,null,2);$('snippetWrap').classList.remove('hidden');
  if(!deployed)return;
  try{
-  let accountDomain;
-  try{accountDomain=await request('/accounts/'+enc(accountId)+'/workers/subdomain');}
-  catch(e){
-   throw new Error('دریافت وضعیت ساب‌دامنه حساب ناموفق بود: '+e.message);
+  let accountDomain=null;
+  try{
+   accountDomain=await request('/accounts/'+enc(accountId)+'/workers/subdomain');
+  }catch(e){
+   if(!/\\[10007\\]/.test(e.message))throw new Error('دریافت وضعیت ساب‌دامنه حساب ناموفق بود: '+e.message);
+   log('ساب‌دامنه workers.dev وجود ندارد؛ ساخت خودکار با API آغاز شد.');
   }
-  let subdomain=accountDomain.result&&accountDomain.result.subdomain?String(accountDomain.result.subdomain).trim():'';
+  let subdomain=accountDomain&&accountDomain.result&&accountDomain.result.subdomain?String(accountDomain.result.subdomain).trim():'';
   if(!subdomain){
-   const suggested=(await prompt('ساب‌دامنه workers.dev برای حساب Cloudflare وجود ندارد. نام پیشنهادی خود را وارد کنید:', script.replace(/[^a-z0-9-]/g,'-').replace(/^-+|-+$/g,'')||'mf-panel'));
-   if(!suggested)return;
-   const clean=suggested.trim().toLowerCase();
-   if(!/^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$/.test(clean))throw new Error('نام ساب‌دامنه فقط می‌تواند حروف کوچک انگلیسی، عدد و خط تیره باشد و معتبر نیست.');
-   try{
-    const created=await request('/accounts/'+enc(accountId)+'/workers/subdomain','PUT',{subdomain:clean});
-    subdomain=created.result&&created.result.subdomain?String(created.result.subdomain).trim():clean;
-    log('ساب‌دامنه حساب workers.dev ساخته شد: '+subdomain);
-   }catch(e){throw new Error('ساخت ساب‌دامنه حساب ناموفق بود: '+e.message);}
+   const baseName=script.toLowerCase().replace(/[^a-z0-9-]/g,'-').replace(/^-+|-+$/g,'')||'mf-panel';
+   const candidates=[baseName,baseName+'-'+String(accountId).slice(-6).toLowerCase()];
+   let createError=null;
+   for(const candidate of candidates){
+    try{
+     const created=await request('/accounts/'+enc(accountId)+'/workers/subdomain','PUT',{subdomain:candidate});
+     subdomain=created.result&&created.result.subdomain?String(created.result.subdomain).trim():candidate;
+     log('ساب‌دامنه workers.dev به‌صورت خودکار ساخته شد: '+subdomain);
+     break;
+    }catch(e){createError=e;log('ساخت ساب‌دامنه با نام '+candidate+' انجام نشد: '+e.message);}
+   }
+   if(!subdomain)throw new Error('ساخت خودکار ساب‌دامنه workers.dev ناموفق بود: '+(createError?createError.message:'پاسخ معتبر از Cloudflare دریافت نشد.'));
   }
   const subdomainPath='/accounts/'+enc(accountId)+'/workers/scripts/'+enc(script)+'/subdomain';
   let workerDomain=await request(subdomainPath);
   if(!workerDomain.result||workerDomain.result.enabled!==true){workerDomain=await request(subdomainPath,'POST',{enabled:true});}
   if(!workerDomain.result||workerDomain.result.enabled!==true)throw new Error('فعال‌سازی آدرس workers.dev برای Worker تأیید نشد.');
-  const base='https://'+script+'.'+subdomain+'.workers.dev';
-  $('links').innerHTML='<div class="status good">لینک نهایی Worker:</div><p dir="ltr" style="overflow-wrap:anywhere"><a id="workerLink" style="color:#60a5fa" target="_blank" rel="noopener noreferrer" href="'+escapeHtml(base)+'">'+escapeHtml(base)+'</a></p><button id="copyWorkerLink" type="button">Copy لینک Worker</button>';
+  const panelUrl='https://'+script+'.'+subdomain+'.workers.dev/panel';
+  $('links').innerHTML='<div class="status good">لینک نهایی پنل:</div><p dir="ltr" style="overflow-wrap:anywhere"><a id="workerLink" style="color:#60a5fa" target="_blank" rel="noopener noreferrer" href="'+escapeHtml(panelUrl)+'">'+escapeHtml(panelUrl)+'</a></p><button id="copyWorkerLink" type="button">Copy لینک پنل</button>';
   $('links').classList.remove('hidden');
-  $('copyWorkerLink').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(base);$('copyWorkerLink').textContent='لینک کپی شد';}catch(e){$('copyWorkerLink').textContent='کپی خودکار ممکن نبود؛ لینک را انتخاب کنید.';}});
+  $('copyWorkerLink').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(panelUrl);$('copyWorkerLink').textContent='لینک کپی شد';}catch(e){$('copyWorkerLink').textContent='کپی خودکار ممکن نبود؛ لینک را انتخاب کنید.';}});
  }catch(e){
   const detail=e&&e.message?e.message:'خطای نامشخص';$('links').innerHTML='<div class="status bad">Worker Deploy شد، اما دریافت لینک نهایی ناموفق بود: '+escapeHtml(detail)+'</div>';$('links').classList.remove('hidden');log('Deploy موفق بود؛ خطای دریافت لینک: '+detail);step('finish','done','Deploy موفق؛ لینک ناموفق');
  }
