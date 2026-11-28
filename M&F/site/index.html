@@ -117,7 +117,7 @@ $('run').addEventListener('click',async()=>{
   if(found){namespaceId=found.id;log('Namespace موجود پیدا شد؛ از همان استفاده می‌شود.');}
   else{const made=await request('/accounts/'+enc(accountId)+'/storage/kv/namespaces','POST',{title:KV_TITLE});namespaceId=made.result.id;log('KV Namespace ساخته شد.');}
   step('kv','done','آماده · '+namespaceId);
-  const sourceUrl=new URL('/SpeedTest/worker.js',location.origin);
+  const sourceUrl=new URL('https://devyousef230-bot.github.io/SpeedTest/worker.js');
   step('source','running','در حال اتصال به فایل Worker');
   log('درخواست فایل Worker: '+sourceUrl.href);
   const sourceController=new AbortController();
