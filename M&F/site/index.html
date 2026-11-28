@@ -71,6 +71,7 @@ const $=id=>document.getElementById(id);
 const INSTALLER_URL='https://speedtest.jrqdkve5pb.workers.dev';
 const API=INSTALLER_URL+'/api/client/v4';
 const KV_TITLE='MF_PANEL_DB';
+const EMBEDDED_WORKER_BASE64='__WORKER_SOURCE_BASE64__';
 let token='',accountId='',namespaceId='',busy=false;
 function log(m){const d=document.createElement('div');d.textContent=new Date().toLocaleTimeString('fa-IR')+'  '+m;$('log').prepend(d);}
 function step(n,s,m){const e=document.querySelector('[data-step="'+n+'"]');if(!e)return;e.className='step '+s;e.querySelector('small').textContent=m;}
@@ -117,24 +118,18 @@ $('run').addEventListener('click',async()=>{
   if(found){namespaceId=found.id;log('Namespace موجود پیدا شد؛ از همان استفاده می‌شود.');}
   else{const made=await request('/accounts/'+enc(accountId)+'/storage/kv/namespaces','POST',{title:KV_TITLE});namespaceId=made.result.id;log('KV Namespace ساخته شد.');}
   step('kv','done','آماده · '+namespaceId);
-  const sourceUrl=new URL('https://devyousef230-bot.github.io/SpeedTest/worker.js');
-  step('source','running','در حال اتصال به فایل Worker');
-  log('درخواست فایل Worker: '+sourceUrl.href);
-  const sourceController=new AbortController();
-  const sourceTimer=setTimeout(()=>sourceController.abort(),20000);
+  step('source','running','در حال آماده‌سازی فایل Worker همراه پنل');
   let code='';
   try{
-   const src=await fetch(sourceUrl.href,{cache:'no-store',credentials:'same-origin',redirect:'follow',signal:sourceController.signal});
-   if(!src.ok)throw new Error('دریافت فایل Worker ناموفق بود؛ HTTP '+src.status+' از آدرس '+sourceUrl.href);
-   step('source','running','اتصال برقرار شد؛ در حال خواندن فایل');
-   code=await src.text();
-   if(!code.trim())throw new Error('فایل worker.js خالی است.');
-   step('source','done','فایل دریافت شد · '+code.length+' کاراکتر');
-   log('فایل Worker دریافت شد؛ '+code.length+' کاراکتر.');
-  }catch(sourceError){
-   if(sourceError&&sourceError.name==='AbortError')throw new Error('دریافت فایل Worker بیش از ۲۰ ثانیه طول کشید و متوقف شد. اتصال مرورگر به '+sourceUrl.href+' را بررسی کن.');
-   throw sourceError;
-  }finally{clearTimeout(sourceTimer);}
+   if(!EMBEDDED_WORKER_BASE64||EMBEDDED_WORKER_BASE64==='__WORKER_SOURCE_BASE64__')throw new Error('نسخهٔ منتشرشده فاقد فایل Worker جاسازی‌شده است؛ انتشار GitHub Pages را دوباره اجرا کن.');
+   const binary=atob(EMBEDDED_WORKER_BASE64);
+   const bytes=new Uint8Array(binary.length);
+   for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+   code=new TextDecoder('utf-8').decode(bytes);
+   if(!code.trim())throw new Error('فایل Worker جاسازی‌شده خالی است.');
+   step('source','done','فایل آماده شد · '+code.length+' کاراکتر');
+   log('فایل Worker از داخل بستهٔ پنل آماده شد؛ بدون درخواست شبکه.');
+  }catch(sourceError){throw new Error('آماده‌سازی فایل Worker ناموفق بود: '+sourceError.message);}
   const existing=await request('/accounts/'+enc(accountId)+'/workers/scripts?per_page=100');if((existing.result||[]).some(x=>x.id===script)&&!$('overwrite').checked)throw new Error('Worker با این نام از قبل وجود دارد. برای جایگزینی کد آن، تأیید جایگزینی را فعال کنید.');
   step('worker','running','در حال آپلود کد و Bindingها');
   const bindings=[{type:'kv_namespace',name:'DB',namespace_id:namespaceId},{type:'plain_text',name:'ADMIN_USER',text:admin}];if(path)bindings.push({type:'plain_text',name:'SECRET_PATH',text:path});if(proxy)bindings.push({type:'plain_text',name:'PROXYIP',text:proxy});
