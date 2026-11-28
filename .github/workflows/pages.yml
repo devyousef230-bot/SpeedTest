@@ -6,6 +6,7 @@ on:
     paths:
       - "M&F/site/**"
       - "M&F/worker.js"
+      - "M&F/worker.js"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -29,6 +30,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Configure Pages
         uses: actions/configure-pages@v5
+      - name: Prepare Worker source for Pages
+        run: cp "M&F/worker.js" "M&F/site/worker.js"
       - name: Prepare Worker source for Pages
         run: cp "M&F/worker.js" "M&F/site/worker.js"
       - name: Upload site artifact
