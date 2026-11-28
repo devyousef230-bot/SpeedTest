@@ -39,10 +39,10 @@ jobs:
           page_path = Path("M&F/site/index.html")
           page = page_path.read_text(encoding="utf-8")
           marker = "__WORKER_SOURCE_BASE64__"
-          if page.count(marker) != 1:
-              raise SystemExit("Expected exactly one Worker source placeholder in deployer page.")
+          if page.count(marker) < 1:
+              raise SystemExit("Worker source placeholder was not found in deployer page.")
           encoded = base64.b64encode(worker).decode("ascii")
-          page_path.write_text(page.replace(marker, encoded), encoding="utf-8")
+          page_path.write_text(page.replace(marker, encoded, 1), encoding="utf-8")
           print(f"Embedded Worker source into deployer page ({len(worker)} bytes).")
           PY
       - name: Upload site artifact
