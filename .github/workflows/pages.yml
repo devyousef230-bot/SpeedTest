@@ -30,7 +30,21 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Prepare Worker source for Pages
-        run: cp "M&F/worker.js" "M&F/site/worker.js"
+        run: |
+          cp "M&F/worker.js" "M&F/site/worker.js"
+          python3 - <<'PY'
+          from pathlib import Path
+          import base64
+          worker = Path("M&F/worker.js").read_bytes()
+          page_path = Path("M&F/site/index.html")
+          page = page_path.read_text(encoding="utf-8")
+          marker = "__WORKER_SOURCE_BASE64__"
+          if page.count(marker) != 1:
+              raise SystemExit("Expected exactly one Worker source placeholder in deployer page.")
+          encoded = base64.b64encode(worker).decode("ascii")
+          page_path.write_text(page.replace(marker, encoded), encoding="utf-8")
+          print(f"Embedded Worker source into deployer page ({len(worker)} bytes).")
+          PY
       - name: Upload site artifact
         uses: actions/upload-pages-artifact@v3
         with:
