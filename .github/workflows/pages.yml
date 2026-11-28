@@ -44,6 +44,8 @@ jobs:
           encoded = base64.b64encode(worker).decode("ascii")
           page_path.write_text(page.replace(marker, encoded, 1), encoding="utf-8")
           print(f"Embedded Worker source into deployer page ({len(worker)} bytes).")
+          page_path.with_name("deployer-c8c1ffb.html").write_text(page_path.read_text(encoding="utf-8"), encoding="utf-8")
+          print("Created cache-busted deployer-c8c1ffb.html.")
           PY
       - name: Upload site artifact
         uses: actions/upload-pages-artifact@v3
@@ -65,3 +67,10 @@ jobs:
             "${SITE_URL}/worker.js"
           test -s /tmp/published-worker.js
           echo "Worker asset is publicly reachable and non-empty."
+          curl --fail --location --retry 8 --retry-delay 5 --retry-all-errors --output /tmp/deployer.html "${SITE_URL}/deployer-c8c1ffb.html"
+          if grep -Fq "const EMBEDDED_WORKER_BASE64='__WORKER_SOURCE_BASE64__'" /tmp/deployer.html; then
+            echo "Versioned deployer page still contains the unfilled Worker placeholder."
+            exit 1
+          fi
+          grep -Fq "const EMBEDDED_WORKER_BASE64='" /tmp/deployer.html
+          echo "Versioned deployer page contains embedded Worker source."
