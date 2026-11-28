@@ -117,9 +117,24 @@ $('run').addEventListener('click',async()=>{
   if(found){namespaceId=found.id;log('Namespace موجود پیدا شد؛ از همان استفاده می‌شود.');}
   else{const made=await request('/accounts/'+enc(accountId)+'/storage/kv/namespaces','POST',{title:KV_TITLE});namespaceId=made.result.id;log('KV Namespace ساخته شد.');}
   step('kv','done','آماده · '+namespaceId);
-  step('source','running','در حال دریافت فایل Worker از ریشه سایت');const sourceUrl=new URL('/SpeedTest/worker.js',location.origin);const src=await fetch(sourceUrl.href,{cache:'no-store'});
-  if(!src.ok){step('source','error','HTTP '+src.status);throw new Error('دریافت فایل Worker ناموفق بود؛ HTTP '+src.status+' از آدرس '+sourceUrl.href);}
-  const code=await src.text();if(!code.trim())throw new Error('فایل worker.js خالی است.');step('source','done','فایل دریافت شد · '+code.length+' کاراکتر');
+  const sourceUrl=new URL('worker.js',document.baseURI);
+  step('source','running','در حال اتصال به فایل Worker');
+  log('درخواست فایل Worker: '+sourceUrl.href);
+  const sourceController=new AbortController();
+  const sourceTimer=setTimeout(()=>sourceController.abort(),20000);
+  let code='';
+  try{
+   const src=await fetch(sourceUrl.href,{cache:'no-store',credentials:'same-origin',redirect:'follow',signal:sourceController.signal});
+   if(!src.ok)throw new Error('دریافت فایل Worker ناموفق بود؛ HTTP '+src.status+' از آدرس '+sourceUrl.href);
+   step('source','running','اتصال برقرار شد؛ در حال خواندن فایل');
+   code=await src.text();
+   if(!code.trim())throw new Error('فایل worker.js خالی است.');
+   step('source','done','فایل دریافت شد · '+code.length+' کاراکتر');
+   log('فایل Worker دریافت شد؛ '+code.length+' کاراکتر.');
+  }catch(sourceError){
+   if(sourceError&&sourceError.name==='AbortError')throw new Error('دریافت فایل Worker بیش از ۲۰ ثانیه طول کشید و متوقف شد. اتصال مرورگر به '+sourceUrl.href+' را بررسی کن.');
+   throw sourceError;
+  }finally{clearTimeout(sourceTimer);}
   const existing=await request('/accounts/'+enc(accountId)+'/workers/scripts?per_page=100');if((existing.result||[]).some(x=>x.id===script)&&!$('overwrite').checked)throw new Error('Worker با این نام از قبل وجود دارد. برای جایگزینی کد آن، تأیید جایگزینی را فعال کنید.');
   step('worker','running','در حال آپلود کد و Bindingها');
   const bindings=[{type:'kv_namespace',name:'DB',namespace_id:namespaceId},{type:'plain_text',name:'ADMIN_USER',text:admin}];if(path)bindings.push({type:'plain_text',name:'SECRET_PATH',text:path});if(proxy)bindings.push({type:'plain_text',name:'PROXYIP',text:proxy});
