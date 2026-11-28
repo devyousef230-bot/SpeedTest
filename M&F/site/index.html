@@ -71,7 +71,7 @@ const $=id=>document.getElementById(id);
 const INSTALLER_URL='https://speedtest.jrqdkve5pb.workers.dev';
 const API=INSTALLER_URL+'/api/client/v4';
 const KV_TITLE='MF_PANEL_DB';
-const EMBEDDED_WORKER_BASE64='__WORKER_SOURCE_BASE64__';
+const WORKER_SOURCE_URL=new URL('worker.js',location.href);
 let token='',accountId='',namespaceId='',busy=false;
 function log(m){const d=document.createElement('div');d.textContent=new Date().toLocaleTimeString('fa-IR')+'  '+m;$('log').prepend(d);}
 function step(n,s,m){const e=document.querySelector('[data-step="'+n+'"]');if(!e)return;e.className='step '+s;e.querySelector('small').textContent=m;}
@@ -121,15 +121,13 @@ $('run').addEventListener('click',async()=>{
   step('source','running','در حال آماده‌سازی فایل Worker همراه پنل');
   let code='';
   try{
-   if(!EMBEDDED_WORKER_BASE64||EMBEDDED_WORKER_BASE64==='__WORKER_SOURCE_BASE64__')throw new Error('نسخهٔ منتشرشده فاقد فایل Worker جاسازی‌شده است؛ انتشار GitHub Pages را دوباره اجرا کن.');
-   const binary=atob(EMBEDDED_WORKER_BASE64);
-   const bytes=new Uint8Array(binary.length);
-   for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
-   code=new TextDecoder('utf-8').decode(bytes);
-   if(!code.trim())throw new Error('فایل Worker جاسازی‌شده خالی است.');
+   const sourceResponse=await fetch(WORKER_SOURCE_URL.href,{method:'GET',cache:'no-store',credentials:'same-origin'});
+   if(!sourceResponse.ok)throw new Error('دریافت worker.js ناموفق بود: HTTP '+sourceResponse.status);
+   code=await sourceResponse.text();
+   if(!code.trim())throw new Error('فایل worker.js خالی است.');
    step('source','done','فایل آماده شد · '+code.length+' کاراکتر');
-   log('فایل Worker از داخل بستهٔ پنل آماده شد؛ بدون درخواست شبکه.');
-  }catch(sourceError){throw new Error('آماده‌سازی فایل Worker ناموفق بود: '+sourceError.message);}
+   log('فایل Worker از مسیر ثابت کنار پنل دریافت شد.');
+  }catch(sourceError){throw new Error('دریافت فایل Worker ناموفق بود: '+sourceError.message);}
   const existing=await request('/accounts/'+enc(accountId)+'/workers/scripts?per_page=100');if((existing.result||[]).some(x=>x.id===script)&&!$('overwrite').checked)throw new Error('Worker با این نام از قبل وجود دارد. برای جایگزینی کد آن، تأیید جایگزینی را فعال کنید.');
   step('worker','running','در حال آپلود کد و Bindingها');
   const bindings=[{type:'kv_namespace',name:'DB',namespace_id:namespaceId},{type:'plain_text',name:'ADMIN_USER',text:admin}];if(path)bindings.push({type:'plain_text',name:'SECRET_PATH',text:path});if(proxy)bindings.push({type:'plain_text',name:'PROXYIP',text:proxy});
