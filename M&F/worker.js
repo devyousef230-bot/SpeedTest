@@ -924,12 +924,9 @@ const LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="132 95 990 10
 // ---------- Cover & Panel UI ----------
 const COVER_PAGE = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>M&F Panel</title><meta name="robots" content="noindex,nofollow">
 <style>
-
-@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800;900&display=swap');
-
 :root{--bg:#050304;--red:#ff2a2a;--red2:#c1121f;--soft:cubic-bezier(.45,0,.55,1);--out:cubic-bezier(.22,1,.36,1)}
 *{box-sizing:border-box}
-body{margin:0;min-height:100svh;display:grid;place-items:center;background:radial-gradient(55% 45% at 88% 102%,rgba(255,42,42,.13),transparent 70%),var(--bg);color:#f6efef;font-family:Vazirmatn,sans-serif;overflow:hidden}
+body{margin:0;min-height:100svh;display:grid;place-items:center;background:radial-gradient(55% 45% at 88% 102%,rgba(255,42,42,.13),transparent 70%),var(--bg);color:#f6efef;font-family:Tahoma,"Segoe UI",system-ui,sans-serif;overflow:hidden}
 .smoke{position:fixed;border-radius:50%;pointer-events:none;will-change:transform;z-index:0}
 .s1{width:46vmax;height:46vmax;left:-14vmax;bottom:-20vmax;background:radial-gradient(circle,rgba(179,18,26,.55) 0%,rgba(120,0,10,.25) 45%,transparent 70%);animation:dr1 38s var(--soft) infinite}
 .s2{width:34vmax;height:34vmax;right:-10vmax;top:-14vmax;background:radial-gradient(circle,rgba(122,10,18,.5),transparent 68%);animation:dr2 44s var(--soft) infinite}
@@ -996,10 +993,7 @@ const LOGIN = (sec) => `<!doctype html><html lang="fa" dir="rtl"><head><meta cha
 <style>
 :root{--bg:#050304;--red:#ff2a2a;--red2:#c1121f;--soft:cubic-bezier(.45,0,.55,1);--out:cubic-bezier(.22,1,.36,1)}
 *{box-sizing:border-box}
-
-@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800;900&display=swap');
-
-body{margin:0;min-height:100svh;display:grid;place-items:center;background:radial-gradient(55% 45% at 88% 102%,rgba(255,42,42,.13),transparent 70%),var(--bg);color:#f6efef;font-family:Vazirmatn,sans-serif;overflow:hidden}
+body{margin:0;min-height:100svh;display:grid;place-items:center;background:radial-gradient(55% 45% at 88% 102%,rgba(255,42,42,.13),transparent 70%),var(--bg);color:#f6efef;font-family:Tahoma,"Segoe UI",system-ui,sans-serif;overflow:hidden}
 .smoke{position:fixed;border-radius:50%;pointer-events:none;will-change:transform;z-index:0}
 .s1{width:46vmax;height:46vmax;left:-14vmax;bottom:-20vmax;background:radial-gradient(circle,rgba(179,18,26,.55) 0%,rgba(120,0,10,.25) 45%,transparent 70%);animation:dr1 38s var(--soft) infinite}
 .s2{width:34vmax;height:34vmax;right:-10vmax;top:-14vmax;background:radial-gradient(circle,rgba(122,10,18,.5),transparent 68%);animation:dr2 44s var(--soft) infinite}
@@ -1076,13 +1070,10 @@ const PAGE = (sec) => `<!doctype html><html lang="fa" dir="rtl"><head><meta char
 <link rel="icon" type="image/svg+xml" href="/logo.svg">
 
 <style>
-
-@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;800;900&display=swap');
-
 :root{--bg:#050304;--card:rgba(17,11,13,.82);--line:rgba(255,90,90,.20);--field:rgba(255,255,255,.05);
  --txt:#f6efef;--mut:#a1969a;--red:#ff2a2a;--red2:#c1121f;--gr:#ff6a55;--out:cubic-bezier(.22,1,.36,1);--soft:cubic-bezier(.45,0,.55,1)}
 *{box-sizing:border-box}
-body{margin:0;padding:20px 14px 70px;max-width:940px;margin-inline:auto;color:var(--txt); font-family:Vazirmatn,sans-serif;
+body{margin:0;padding:20px 14px 70px;max-width:940px;margin-inline:auto;color:var(--txt);font:15px/1.7 system-ui,Tahoma,"Segoe UI",sans-serif;
  background:radial-gradient(55% 40% at 85% -5%,rgba(255,42,42,.12),transparent 65%),radial-gradient(45% 35% at 0% 105%,rgba(178,18,31,.14),transparent 60%),var(--bg);
  -webkit-font-smoothing:antialiased}
 .smoke{position:fixed;border-radius:50%;pointer-events:none;z-index:-1;will-change:transform}
@@ -1218,6 +1209,9 @@ html.low section::before{animation-play-state:running!important}
 <button id="srs" class="dngr" title="پاک کردن همه آمار">ریست</button></h2>
 <div id="stats"><div class="empty">در حال بارگذاری...</div></div></section>
 
+<section><h2><span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 3L3 10.5l6 2.5 2.5 6L14 15l5 4z"/></svg></span>کانال تلگرام</h2>
+<a href="https://t.me/M_Fpanel" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 16px;border-radius:12px;border:1px solid rgba(255,90,70,.35);background:rgba(255,255,255,.04);color:inherit;text-decoration:none;font-weight:700">عضویت در کانال @M_Fpanel</a></section>
+
 <div id="toast"></div>
 <div id="modal" onclick="if(event.target===this)this.classList.remove('on')"><div class="mbox">
 <h3 style="margin:0 0 10px">لینک اشتراک</h3><img id="qimg" alt="QR"><code id="qurl"></code>
@@ -1234,7 +1228,7 @@ function el(t,c,x){var e=document.createElement(t);if(c)e.className=c;if(x!==und
 function btn(t,fn,cls){var e=el('button',cls||'',t);e.onclick=function(){var p=fn();if(p&&p.catch)p.catch(function(x){toast(x.message)})};return e}
 function cp(t){(navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(t):Promise.reject()).then(function(){toast('کپی شد')}).catch(function(){var i=document.createElement('textarea');i.value=t;document.body.append(i);i.select();try{document.execCommand('copy');toast('کپی شد')}catch(e){prompt('Copy:',t)}i.remove()})}
 const CHIP_CLS = {};
-[P_VL, P_VM, P_TR, P_SS].forEach((x, i) => { CHIP_CLS[x] = 'c' + i; });
+${JSON.stringify([P_VL, P_VM, P_TR, P_SS])}.forEach(function(x, i){ CHIP_CLS[x] = 'c' + i; });
 function chip(p){return el('span','chip '+(CHIP_CLS[p]||''),p)}
 function fmtB(n){if(!n)return '۰';var u=['B','KB','MB','GB','TB'],i=0;while(n>=1024&&i<u.length-1){n/=1024;i++}return (n>=100?Math.round(n):Math.round(n*10)/10)+u[i]}
 async function loadStats(){var b=$('stats');
